@@ -40,8 +40,8 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
 @keyframes glow{0%,100%{opacity:.4}50%{opacity:1}}
 .loading-text{font-family:"Playfair Display",serif;font-size:14px;color:rgba(201,168,76,.5);letter-spacing:.1em}
 .cover-slide{background:var(--dark);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px 24px 60px;min-height:100%}
-.logo-img{width:90%;max-width:560px;height:auto;margin-bottom:16px;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.5)}
-@media(min-width:600px){.logo-img{max-width:700px}.cover-week{font-size:22px!important;padding:12px 32px!important}.cover-theme{font-size:15px!important;margin-bottom:48px!important}}
+.logo-img{width:220px;height:auto;margin-bottom:20px;border-radius:12px}
+@media(min-width:600px){.logo-img{width:420px}.cover-week{font-size:22px!important;padding:12px 32px!important}.cover-theme{font-size:15px!important;margin-bottom:48px!important}}
 .cover-week{font-family:"Playfair Display",serif;font-size:16px;color:rgba(201,168,76,.8);margin-bottom:8px;padding:8px 22px;border:1px solid var(--border);border-radius:6px}
 .cover-theme{font-size:12px;color:rgba(201,168,76,.45);letter-spacing:.08em;text-transform:uppercase;margin-bottom:36px}
 .swipe-hint{font-size:12px;color:rgba(201,168,76,.35);letter-spacing:.05em;display:flex;align-items:center;gap:6px;animation:pulse 2.5s ease-in-out infinite}
@@ -147,6 +147,21 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
 .arrow-btn{pointer-events:all;width:44px;height:44px;border-radius:50%;background:var(--navy);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:opacity .2s}
 .arrow-btn:disabled{opacity:.15;pointer-events:none}
 .arrow-btn svg{width:18px;height:18px;stroke:var(--gold);fill:none;stroke-width:2.5}
+/* IDENTITY PICKER */
+#identity-overlay{display:none;position:fixed;inset:0;background:var(--dark);z-index:400;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow-y:auto}
+#identity-overlay.open{display:flex}
+.identity-title{font-family:"Playfair Display",serif;font-size:24px;font-weight:700;color:var(--gold);text-align:center;margin-bottom:6px}
+.identity-sub{font-size:13px;color:rgba(201,168,76,.5);text-align:center;margin-bottom:28px;line-height:1.5}
+.identity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;width:100%;max-width:480px;margin-bottom:20px}
+.identity-tile{background:rgba(201,168,76,.06);border:1px solid var(--border);border-radius:14px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .15s}
+.identity-tile:active{background:rgba(201,168,76,.15);border-color:var(--gold)}
+.identity-avatar{width:44px;height:44px;border-radius:50%;background:var(--navy);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:"Playfair Display",serif;font-size:16px;font-weight:700;color:var(--gold)}
+.identity-name{font-size:12px;color:var(--gold-light);text-align:center;line-height:1.2;word-break:break-word}
+.identity-guest{background:transparent;border:1px dashed var(--border);border-radius:10px;padding:10px 20px;color:rgba(201,168,76,.5);font-size:13px;cursor:pointer;font-family:"DM Sans",sans-serif;-webkit-tap-highlight-color:transparent}
+.identity-guest:active{color:var(--gold)}
+/* MY PAGE BUTTON */
+#mypage-btn{background:rgba(201,168,76,.08);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:11px;color:var(--gold);cursor:pointer;font-family:"DM Sans",sans-serif;display:none;align-items:center;gap:4px;-webkit-tap-highlight-color:transparent;white-space:nowrap}
+#mypage-btn:active{background:rgba(201,168,76,.15)}
 </style>
 </head>
 <body>
@@ -157,7 +172,7 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
 <div id="app">
   <div id="topbar">
     <div><div id="topbar-title">Kingdom Men&rsquo;s &mdash; Iron Sharpens Iron</div><div id="topbar-week"></div></div>
-    <div id="slide-counter"></div>
+    <div style="display:flex;align-items:center;gap:8px"><button id="mypage-btn" onclick="goToMyPage()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg> My Page</button><div id="slide-counter"></div></div>
   </div>
   <div id="dots-bar"></div>
   <div id="quicknav-wrap"><select id="quicknav"><option value="">Jump to&hellip;</option></select></div>
@@ -213,6 +228,13 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
     <div class="overlay-status" id="weekly-status"></div>
   </div>
 </div>
+<!-- IDENTITY PICKER -->
+<div id="identity-overlay">
+  <div class="identity-title">Welcome, Brother!</div>
+  <div class="identity-sub">Who are you? This helps the app know you<br>so your name auto-fills when you pray and comment.</div>
+  <div class="identity-grid" id="identity-grid"></div>
+  <button class="identity-guest" onclick="setIdentity(null)">Just browsing (guest)</button>
+</div>
 <!-- CONFIRM -->
 <div id="confirm-dialog">
   <div class="confirm-box">
@@ -229,6 +251,45 @@ var WEEKLY={theme:"God Orders Our Steps",verse:"The Lord directs the steps of th
 var men=[],prayers={},weeklyPrayers=[],comments={};
 var currentSlide=0,totalSlides=0;
 var addingForMan=null,profileForMan=null,pendingDeleteId=null,pendingDeleteManName=null;
+
+// IDENTITY
+function getIdentity(){try{return localStorage.getItem('km_identity')||null;}catch(e){return null;}}
+function setIdentity(name){
+  try{if(name)localStorage.setItem('km_identity',name);else localStorage.setItem('km_identity','__guest__');}catch(e){}
+  document.getElementById('identity-overlay').classList.remove('open');
+  applyIdentity();
+}
+function applyIdentity(){
+  var id=getIdentity();
+  var btn=document.getElementById('mypage-btn');
+  if(id&&id!=='__guest__'&&men.some(function(m){return m.name===id;})){
+    if(btn)btn.style.display='flex';
+    // Pre-select identity in all comment dropdowns
+    document.querySelectorAll('.comment-who').forEach(function(sel){sel.value=id;});
+  } else {
+    if(btn)btn.style.display='none';
+  }
+}
+function goToMyPage(){
+  var id=getIdentity();
+  if(!id||id==='__guest__')return;
+  var man=men.find(function(m){return m.name===id;});
+  if(!man)return;
+  goTo(3+men.indexOf(man));
+}
+function showIdentityPicker(){
+  var grid=document.getElementById('identity-grid');
+  grid.innerHTML='';
+  men.forEach(function(m){
+    var initials=m.name.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+    var tile=document.createElement('div');
+    tile.className='identity-tile';
+    tile.innerHTML='<div class="identity-avatar">'+initials+'</div><div class="identity-name">'+m.name+'</div>';
+    tile.addEventListener('click',function(){setIdentity(m.name);});
+    grid.appendChild(tile);
+  });
+  document.getElementById('identity-overlay').classList.add('open');
+}
 
 // ONE-TAP TRACKING
 function getPrayedSet(){try{return new Set(JSON.parse(localStorage.getItem('km_prayed')||'[]'));}catch(e){return new Set();}}
@@ -274,8 +335,9 @@ async function init(){
     goTo(0,false);setupSwipe();
     document.getElementById("btn-prev").addEventListener("click",function(){goTo(currentSlide-1);});
     document.getElementById("btn-next").addEventListener("click",function(){goTo(currentSlide+1);});
-    document.getElementById("quicknav").addEventListener("change",function(){if(this.value!=="")goTo(parseInt(this.value));setTimeout(function(){document.getElementById("quicknav").value="";},100);});
+    document.getElementById("quicknav").addEventListener("change",function(){if(this.value==="__change__"){showIdentityPicker();}else if(this.value!==""){goTo(parseInt(this.value));}setTimeout(function(){document.getElementById("quicknav").value="";},100);});
     var ls=document.getElementById("loading-screen");ls.classList.add("hidden");setTimeout(function(){ls.style.display="none";},500);
+    if(!getIdentity()){showIdentityPicker();}else{applyIdentity();}
   }catch(e){console.error(e);showErr(e.message);}
 }
 function showErr(msg){document.getElementById("loading-screen").innerHTML='<div style="text-align:center;padding:40px 24px"><div style="font-size:48px;color:#C9A84C;margin-bottom:16px">&#10011;</div><div style="font-family:Playfair Display,serif;color:#C9A84C;font-size:16px;margin-bottom:12px">Error</div><div style="color:rgba(201,168,76,.5);font-size:13px;padding:0 12px">'+msg+'</div></div>';}
@@ -325,7 +387,8 @@ function summaryCardHTML(p,isPinned){
   var commentCount=cardComments.length;
   var commHtml="";
   cardComments.forEach(function(c){commHtml+='<div class="comment-item"><div class="comment-author">'+c.man_name+'</div><div class="comment-text">'+c.comment_text+'</div><div class="comment-date">'+formatDate((c.created_at||"").split("T")[0])+'</div></div>';});
-  var nameOpts=men.map(function(m){return'<option value="'+m.name+'">'+m.name+'</option>';}).join("");
+  var myId2=getIdentity();
+  var nameOpts=men.map(function(m){var sel=(myId2===m.name)?' selected':'';return'<option value="'+m.name+'"'+sel+'>'+m.name+'</option>';}).join("");
   commHtml+='<div class="add-comment-form"><select class="comment-who" id="swho-'+p.id+'">'+nameOpts+'</select><textarea class="comment-input" id="scin-'+p.id+'" placeholder="Encouragement..." rows="1"></textarea><button class="comment-submit" onclick="submitSummaryComment('+p.id+')">Send</button></div>';
   return '<div class="'+cls+'" id="scard-'+p.id+'">'+
     '<div class="prayer-card-top"><div class="prayer-card-badges">'+pinBadge+catBadge+manBadge+'</div></div>'+
@@ -409,7 +472,8 @@ function prayerCardHTML(p){
   var commentCount=cardComments.length;
   var commHtml="";
   cardComments.forEach(function(c){commHtml+='<div class="comment-item"><div class="comment-author">'+c.man_name+'</div><div class="comment-text">'+c.comment_text+'</div><div class="comment-date">'+formatDate((c.created_at||"").split("T")[0])+'</div></div>';});
-  var nameOpts=men.map(function(m){return'<option value="'+m.name+'">'+m.name+'</option>';}).join("");
+  var myId=getIdentity();
+  var nameOpts=men.map(function(m){var sel=(myId===m.name)?' selected':'';return'<option value="'+m.name+'"'+sel+'>'+m.name+'</option>';}).join("");
   commHtml+='<div class="add-comment-form"><select class="comment-who" id="who-'+p.id+'">'+nameOpts+'</select><textarea class="comment-input" id="cin-'+p.id+'" placeholder="Encouragement..." rows="1"></textarea><button class="comment-submit" onclick="submitComment('+p.id+')">Send</button></div>';
   var ansBtn=!isAnswered?'<button class="answered-btn" onclick="markAnswered('+p.id+',\''+sn+'\')">&#10003; Answered</button>':"";
   return '<div class="'+cls+'" id="pcard-'+p.id+'">'+
@@ -428,7 +492,7 @@ function prayerCardHTML(p){
 // DOTS & NAV
 function buildDots(){var bar=document.getElementById("dots-bar");bar.innerHTML="";for(var i=0;i<totalSlides;i++){var d=document.createElement("div");d.className="dot";(function(idx){d.addEventListener("click",function(){goTo(idx);});})(i);bar.appendChild(d);}}
 function updateDots(){document.querySelectorAll(".dot").forEach(function(d,i){d.classList.toggle("active",i===currentSlide);});}
-function buildQuicknav(){var sel=document.getElementById("quicknav");sel.innerHTML='<option value="">Jump to&hellip;</option><option value="1">&#128203; Prayer Board</option><option value="2">&#128591; Prayer &amp; Theme</option>';men.forEach(function(man,i){var opt=document.createElement("option");opt.value=3+i;opt.textContent=man.name;sel.appendChild(opt);});}
+function buildQuicknav(){var sel=document.getElementById("quicknav");sel.innerHTML='<option value="">Jump to&hellip;</option><option value="1">&#128203; Prayer Board</option><option value="2">&#128591; Prayer &amp; Theme</option>';men.forEach(function(man,i){var opt=document.createElement("option");opt.value=3+i;opt.textContent=man.name;sel.appendChild(opt);});var chg=document.createElement("option");chg.value="__change__";chg.textContent="\u2699 Change who I am";sel.appendChild(chg);}
 function goTo(idx,animate){
   if(animate===undefined)animate=true;
   if(idx<0||idx>=totalSlides)return;
