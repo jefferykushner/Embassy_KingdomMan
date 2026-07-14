@@ -603,10 +603,10 @@ async function tapPray(prayerId,fromSummary){
 function toggleSection(sectionId){
   var sec=document.getElementById(sectionId);if(!sec)return;
   sec.classList.toggle("open");
-  // update arrow if it's the answered section
-  var arrowId=sectionId.replace("ans-","ans-arrow-");
-  var arrow=document.getElementById(arrowId);
-  if(arrow)arrow.innerHTML=sec.classList.contains("open")?"&#9650;":"&#9660;";
+  if(sectionId.indexOf("ans-")===0){
+    var arrow=document.getElementById("ans-arrow-"+sectionId.substring(4));
+    if(arrow)arrow.innerHTML=sec.classList.contains("open")?"&#9650;":"&#9660;";
+  }
   if(sec.classList.contains("open")){var inp=sec.querySelector(".comment-input");if(inp)setTimeout(function(){inp.focus();},100);}
 }
 
