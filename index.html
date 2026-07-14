@@ -518,6 +518,7 @@ function personSlideHTML(man,i){
     '<div class="person-avatar">'+initials+'</div>'+
     '<div><div class="person-name">'+man.name+'</div><div class="person-name-sub">Prayer &amp; Praise</div></div>'+
     '<div class="header-btns">'+
+    '<button class="icon-btn" onclick="copyPrayerList(\''+sn+'\')" title="Copy list"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>'+
     '<button class="icon-btn" onclick="openProfile(\''+sn+'\','+i+')" title="Profile"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></button>'+
     '<button class="icon-btn" onclick="openAddPrayer(\''+sn+'\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> Add</button>'+
     '</div></div>'+cards+'</div>';
@@ -709,6 +710,48 @@ async function submitBirthdayWish(btnEl){
     if(rb)rb.innerHTML="&#127873;&nbsp;"+cnt+" birthday wish"+(cnt!==1?"es":"");
     showSave("&#127874; Wish sent!");
   }catch(e){console.error(e);if(btn)btn.disabled=false;}
+}
+
+// COPY PRAYER LIST
+function copyPrayerList(manName){
+  var manPrayers=(prayers[manName]||[]).slice().sort(function(a,b){return new Date(b.created_at)-new Date(a.created_at);});
+  var active=manPrayers.filter(function(p){return!p.answered;});
+  var answered=manPrayers.filter(function(p){return p.answered;});
+  var text="\u{1F64F} "+manName+"'s Prayer List:\n";
+  if(!active.length&&!answered.length){text+="\n(No prayers on file)\n";}
+  else{
+    // Group active by category
+    var cats={};
+    active.forEach(function(p){
+      var c=p.category||"Other";
+      if(!cats[c])cats[c]=[];
+      cats[c].push(p);
+    });
+    for(var cat in cats){
+      text+="\n"+cat+":\n";
+      cats[cat].forEach(function(p){
+        text+="\u2022 "+p.prayer_text;
+        if(p.prayer_date&&!isDatePast(p.prayer_date))text+=" \u{1F4CC}"+formatDate(p.prayer_date);
+        text+="\n";
+      });
+    }
+    if(answered.length){
+      text+="\n\u2705 Answered:\n";
+      answered.forEach(function(p){text+="\u2022 "+p.prayer_text+"\n";});
+    }
+  }
+  text+="\n\u2014 Kingdom Men Prayer App";
+  navigator.clipboard.writeText(text).then(function(){
+    showSave("\u{1F4CB} Copied "+manName+"'s list!");
+  }).catch(function(){
+    // Fallback for older browsers
+    var ta=document.createElement("textarea");
+    ta.value=text;ta.style.position="fixed";ta.style.left="-9999px";
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand("copy");showSave("\u{1F4CB} Copied "+manName+"'s list!");}
+    catch(e){alert("Could not copy. Please try again.");}
+    document.body.removeChild(ta);
+  });
 }
 
 // DELETE
