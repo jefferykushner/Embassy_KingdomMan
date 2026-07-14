@@ -162,6 +162,11 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
 /* MY PAGE BUTTON */
 #mypage-btn{background:rgba(201,168,76,.08);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:11px;color:var(--gold);cursor:pointer;font-family:"DM Sans",sans-serif;display:none;align-items:center;gap:4px;-webkit-tap-highlight-color:transparent;white-space:nowrap}
 #mypage-btn:active{background:rgba(201,168,76,.15)}
+/* BIRTHDAY CARD */
+.birthday-card{background:linear-gradient(135deg,#FDF6E3 0%,#FFF0C0 100%);border:1px solid var(--gold);border-radius:12px;padding:16px;margin-bottom:10px;text-align:center}
+.birthday-emoji{font-size:28px;margin-bottom:6px}
+.birthday-title{font-family:"Playfair Display",serif;font-size:17px;font-weight:700;color:#7A5C10;margin-bottom:4px}
+.birthday-text{font-size:13px;color:#8B6914;line-height:1.5}
 </style>
 </head>
 <body>
@@ -209,6 +214,8 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
     <p class="form-hint" style="color:rgba(201,168,76,.55)">Your email will be used for the weekly prayer digest notification.</p>
     <div><label class="form-label">Email Address</label><input class="form-input" type="email" id="profile-email" placeholder="your@email.com" /></div>
     <div><label class="form-label">Phone Number <span style="color:rgba(201,168,76,.4);font-size:10px;text-transform:none;letter-spacing:0">(optional)</span></label><input class="form-input" type="tel" id="profile-phone" placeholder="+1 (416) 555-0000" /></div>
+    <div><label class="form-label">Birthday <span style="color:rgba(201,168,76,.4);font-size:10px;text-transform:none;letter-spacing:0">(optional)</span></label><input class="form-input" type="date" id="profile-birthday" />
+    <div class="form-hint">Your brothers will see a birthday card on the Prayer Board around your special day! &#127874;</div></div>
     <button class="overlay-save" id="profile-save-btn" onclick="saveProfile()">Save Profile</button>
     <div class="overlay-status" id="profile-status"></div>
   </div>
@@ -299,6 +306,44 @@ function hasPrayed(id){return getPrayedSet().has(id);}
 // HELPERS
 function formatDate(ds){if(!ds)return"";var d=new Date(ds+"T12:00:00");return d.toLocaleDateString("en-CA",{month:"short",day:"numeric",year:"numeric"});}
 function isDatePast(ds){if(!ds)return false;return new Date(ds+"T23:59:59")<new Date();}
+// BIRTHDAY HELPERS
+function getBirthdayMen(){
+  // Returns men whose birthday (any year) falls within -7..+7 days of today
+  var today=new Date();today.setHours(0,0,0,0);
+  var results=[];
+  men.forEach(function(m){
+    if(!m.birthday)return;
+    var parts=m.birthday.split("-");
+    if(parts.length!==3)return;
+    var bMonth=parseInt(parts[1])-1,bDay=parseInt(parts[2]);
+    // Build this year's occurrence
+    var candidates=[new Date(today.getFullYear()-1,bMonth,bDay),new Date(today.getFullYear(),bMonth,bDay),new Date(today.getFullYear()+1,bMonth,bDay)];
+    candidates.forEach(function(bd){
+      bd.setHours(0,0,0,0);
+      var diff=Math.round((bd-today)/(1000*60*60*24));
+      if(diff>=-7&&diff<=7){
+        results.push({man:m,daysUntil:diff,date:bd});
+      }
+    });
+  });
+  // De-dupe by name
+  var seen={};
+  return results.filter(function(r){if(seen[r.man.name])return false;seen[r.man.name]=true;return true;})
+    .sort(function(a,b){return Math.abs(a.daysUntil)-Math.abs(b.daysUntil);});
+}
+function birthdayCardHTML(b){
+  var m=b.man,d=b.daysUntil;
+  var when;
+  if(d===0)when="TODAY is "+m.name+"'s birthday!";
+  else if(d>0)when=m.name+"'s birthday is "+(d===1?"tomorrow":"in "+d+" days")+"!";
+  else when=m.name+" celebrated a birthday "+(d===-1?"yesterday":Math.abs(d)+" days ago")+"!";
+  var dateStr=b.date.toLocaleDateString("en-CA",{month:"long",day:"numeric"});
+  return '<div class="birthday-card">'+
+    '<div class="birthday-emoji">&#127874;</div>'+
+    '<div class="birthday-title">'+when+'</div>'+
+    '<div class="birthday-text">'+dateStr+' &mdash; Wish him a blessed year, brothers! Drop an encouragement on his page. &#127881;</div>'+
+    '</div>';
+}
 
 // DB
 async function dbFetch(path,opts){
@@ -366,6 +411,8 @@ function buildBoardSlide(){
   var pinnedIds=pinned.map(function(p){return p.id;});
   var regular=active.filter(function(p){return pinnedIds.indexOf(p.id)===-1;}).sort(function(a,b){return new Date(b.created_at)-new Date(a.created_at);}).slice(0,20);
   var cards="";
+  var bdays=getBirthdayMen();
+  if(bdays.length){cards+='<div class="prayer-cat-label" style="margin-bottom:10px">&#127874; Birthdays</div>';bdays.forEach(function(b){cards+=birthdayCardHTML(b);});cards+='<div style="height:8px"></div>';}
   if(pinned.length){cards+='<div class="prayer-cat-label" style="margin-bottom:10px">&#128204; Date-Specific Prayers</div>';pinned.forEach(function(p){cards+=summaryCardHTML(p,true);});}
   if(regular.length){cards+='<div class="prayer-cat-label" style="margin-top:'+(pinned.length?'18px':'0')+';margin-bottom:10px">All Prayers</div>';regular.forEach(function(p){cards+=summaryCardHTML(p,false);});}
   if(!pinned.length&&!regular.length)cards='<div class="empty-state"><div class="empty-state-icon">&#128591;</div>No active prayers yet.</div>';
@@ -655,7 +702,7 @@ async function saveAddPrayer(){
 }
 
 // PROFILE
-function openProfile(manName,idx){profileForMan={name:manName,idx:idx};var man=men.find(function(m){return m.name===manName;});document.getElementById("profile-title").textContent=manName+" \u2014 Profile";document.getElementById("profile-email").value=(man&&man.email)||"";document.getElementById("profile-phone").value=(man&&man.phone)||"";document.getElementById("profile-status").textContent="";document.getElementById("profile-save-btn").disabled=false;document.getElementById("profile-overlay").classList.add("open");}
+function openProfile(manName,idx){profileForMan={name:manName,idx:idx};var man=men.find(function(m){return m.name===manName;});document.getElementById("profile-title").textContent=manName+" \u2014 Profile";document.getElementById("profile-email").value=(man&&man.email)||"";document.getElementById("profile-phone").value=(man&&man.phone)||"";document.getElementById("profile-birthday").value=(man&&man.birthday)||"";document.getElementById("profile-status").textContent="";document.getElementById("profile-save-btn").disabled=false;document.getElementById("profile-overlay").classList.add("open");}
 function closeProfile(){document.getElementById("profile-overlay").classList.remove("open");profileForMan=null;}
 async function saveProfile(){
   if(!profileForMan)return;
@@ -663,9 +710,10 @@ async function saveProfile(){
   btn.disabled=true;status.textContent="Saving\u2026";
   var email=document.getElementById("profile-email").value.trim();
   var phone=document.getElementById("profile-phone").value.trim();
+  var birthday=document.getElementById("profile-birthday").value||null;
   try{
-    await dbFetch("men?name=eq."+encodeURIComponent(profileForMan.name),{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({email:email,phone:phone})});
-    var man=men.find(function(m){return m.name===profileForMan.name;});if(man){man.email=email;man.phone=phone;}
+    await dbFetch("men?name=eq."+encodeURIComponent(profileForMan.name),{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({email:email,phone:phone,birthday:birthday})});
+    var man=men.find(function(m){return m.name===profileForMan.name;});if(man){man.email=email;man.phone=phone;man.birthday=birthday;}
     showSave("&#10003; Profile saved");closeProfile();
   }catch(e){status.textContent="Error: "+e.message;btn.disabled=false;}
 }
