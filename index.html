@@ -96,12 +96,15 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
 .comment-author{font-size:11px;font-weight:500;color:var(--gold);margin-bottom:3px}
 .comment-text{font-size:13px;color:#3A3020;line-height:1.5}
 .comment-date{font-size:10px;color:var(--muted);margin-top:3px}
-.add-comment-form{display:flex;gap:6px;margin-top:8px;align-items:flex-start;flex-wrap:wrap}
-.comment-input{flex:1;min-width:120px;background:rgba(201,168,76,.06);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-family:"DM Sans",sans-serif;font-size:13px;color:#1a1408;outline:none;resize:none;min-height:36px}
-.comment-input:focus{border-color:var(--gold)}
-.comment-who{background:rgba(201,168,76,.06);border:1px solid var(--border);border-radius:8px;padding:8px 8px;font-family:"DM Sans",sans-serif;font-size:12px;color:#1a1408;outline:none;appearance:none;-webkit-appearance:none;min-width:80px;max-width:100px}
-.comment-submit{background:var(--gold);border:none;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;color:var(--dark);cursor:pointer;font-family:"DM Sans",sans-serif;white-space:nowrap;flex-shrink:0}
+.add-comment-form{display:flex;flex-direction:column;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(201,168,76,.15)}
+.add-comment-row{display:flex;gap:6px;align-items:center}
+.comment-input{width:100%;background:#fff;border:1.5px solid rgba(201,168,76,.35);border-radius:10px;padding:10px 12px;font-family:"DM Sans",sans-serif;font-size:14px;color:#1a1408;outline:none;resize:none;min-height:44px}
+.comment-input::placeholder{color:rgba(122,110,90,.5)}
+.comment-input:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,168,76,.15)}
+.comment-who{flex:1;background:#fff;border:1.5px solid rgba(201,168,76,.35);border-radius:10px;padding:9px 10px;font-family:"DM Sans",sans-serif;font-size:13px;color:#1a1408;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237A6E5A' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.comment-submit{background:var(--gold);border:none;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:600;color:var(--dark);cursor:pointer;font-family:"DM Sans",sans-serif;white-space:nowrap}
 .comment-submit:disabled{opacity:.5}
+.comment-submit:active{opacity:.85}
 /* ANSWERED SECTION */
 .answered-section-toggle{width:100%;text-align:center;padding:10px;font-size:13px;color:var(--muted);cursor:pointer;background:transparent;border:1px dashed var(--border);border-radius:10px;font-family:"DM Sans",sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px}
 .answered-section-toggle:active{color:var(--gold);border-color:var(--gold)}
@@ -348,7 +351,7 @@ function birthdayCardHTML(b){
   var nameOpts=men.map(function(mm){var sel=(myId===mm.name)?" selected":"";return'<option value="'+mm.name+'"'+sel+'>'+mm.name+"</option>";}).join("");
   var key=m.name.replace(/[^A-Za-z0-9]/g,"_");
   var toggleId="bwish-"+key;
-  wishHtml+='<div class="add-comment-form"><select class="comment-who" id="bwho-'+key+'">'+nameOpts+'</select><textarea class="comment-input" id="bwin-'+key+'" placeholder="Wish him a blessed year..." rows="1"></textarea><button class="comment-submit" onclick="submitBirthdayWish(this)" data-man="'+m.name+'" data-year="'+yr+'">Send</button></div>';
+  wishHtml+='<div class="add-comment-form"><textarea class="comment-input" id="bwin-'+key+'" placeholder="Wish him a blessed year..." rows="2"></textarea><div class="add-comment-row"><select class="comment-who" id="bwho-'+key+'">'+nameOpts+'</select><button class="comment-submit" onclick="submitBirthdayWish(this)" data-man="'+m.name+'" data-year="'+yr+'">Send</button></div></div>';
   var wishCount=wishes.length;
   return '<div class="birthday-card">' +
     '<div class="birthday-emoji">&#127874;</div>' +
@@ -455,7 +458,7 @@ function summaryCardHTML(p,isPinned){
   cardComments.forEach(function(c){commHtml+='<div class="comment-item"><div class="comment-author">'+c.man_name+'</div><div class="comment-text">'+c.comment_text+'</div><div class="comment-date">'+formatDate((c.created_at||"").split("T")[0])+'</div></div>';});
   var myId2=getIdentity();
   var nameOpts=men.map(function(m){var sel=(myId2===m.name)?' selected':'';return'<option value="'+m.name+'"'+sel+'>'+m.name+'</option>';}).join("");
-  commHtml+='<div class="add-comment-form"><select class="comment-who" id="swho-'+p.id+'">'+nameOpts+'</select><textarea class="comment-input" id="scin-'+p.id+'" placeholder="Encouragement..." rows="1"></textarea><button class="comment-submit" onclick="submitSummaryComment('+p.id+')">Send</button></div>';
+  commHtml+='<div class="add-comment-form"><textarea class="comment-input" id="scin-'+p.id+'" placeholder="Write an encouragement..." rows="2"></textarea><div class="add-comment-row"><select class="comment-who" id="swho-'+p.id+'">'+nameOpts+'</select><button class="comment-submit" onclick="submitSummaryComment('+p.id+')">Send</button></div></div>';
   return '<div class="'+cls+'" id="scard-'+p.id+'">'+
     '<div class="prayer-card-top"><div class="prayer-card-badges">'+pinBadge+catBadge+manBadge+'</div></div>'+
     '<div class="prayer-card-text">'+p.prayer_text+'</div>'+
@@ -540,7 +543,7 @@ function prayerCardHTML(p){
   cardComments.forEach(function(c){commHtml+='<div class="comment-item"><div class="comment-author">'+c.man_name+'</div><div class="comment-text">'+c.comment_text+'</div><div class="comment-date">'+formatDate((c.created_at||"").split("T")[0])+'</div></div>';});
   var myId=getIdentity();
   var nameOpts=men.map(function(m){var sel=(myId===m.name)?' selected':'';return'<option value="'+m.name+'"'+sel+'>'+m.name+'</option>';}).join("");
-  commHtml+='<div class="add-comment-form"><select class="comment-who" id="who-'+p.id+'">'+nameOpts+'</select><textarea class="comment-input" id="cin-'+p.id+'" placeholder="Encouragement..." rows="1"></textarea><button class="comment-submit" onclick="submitComment('+p.id+')">Send</button></div>';
+  commHtml+='<div class="add-comment-form"><textarea class="comment-input" id="cin-'+p.id+'" placeholder="Write an encouragement..." rows="2"></textarea><div class="add-comment-row"><select class="comment-who" id="who-'+p.id+'">'+nameOpts+'</select><button class="comment-submit" onclick="submitComment('+p.id+')">Send</button></div></div>';
   var ansBtn=!isAnswered?'<button class="answered-btn" onclick="markAnswered('+p.id+',\''+sn+'\')">&#10003; Answered</button>':"";
   return '<div class="'+cls+'" id="pcard-'+p.id+'">'+
     '<div class="prayer-card-top"><div class="prayer-card-badges">'+pinBadge+catBadge+'</div><button class="delete-btn" onclick="askDelete('+p.id+',\''+sn+'\',\''+st+'\')" title="Delete">&#x2715;</button></div>'+
