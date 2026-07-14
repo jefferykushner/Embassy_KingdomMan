@@ -345,20 +345,22 @@ function birthdayCardHTML(b){
     wishHtml+='<div class="comment-item" style="text-align:left"><div class="comment-author">'+w.from_name+'</div><div class="comment-text">'+w.wish_text+'</div></div>';
   });
   var myId=getIdentity();
-  var nameOpts=men.map(function(mm){var sel=(myId===mm.name)?' selected':'';return'<option value="'+mm.name+'"'+sel+'>'+mm.name+'</option>';}).join("");
-  wishHtml+='<div class="add-comment-form"><select class="comment-who" id="bwho-'+m.name.replace(/[^A-Za-z0-9]/g,"_")+'">'+nameOpts+'</select><textarea class="comment-input" id="bwin-'+m.name.replace(/[^A-Za-z0-9]/g,"_")+'" placeholder="Wish him a blessed year..." rows="1"></textarea><button class="comment-submit" onclick="submitBirthdayWish(\''+m.name.replace(/'/g,"\\'")+'\','+yr+')">Send</button></div>';
+  var nameOpts=men.map(function(mm){var sel=(myId===mm.name)?" selected":"";return'<option value="'+mm.name+'"'+sel+'>'+mm.name+"</option>";}).join("");
+  var key=m.name.replace(/[^A-Za-z0-9]/g,"_");
+  var toggleId="bwish-"+key;
+  wishHtml+='<div class="add-comment-form"><select class="comment-who" id="bwho-'+key+'">'+nameOpts+'</select><textarea class="comment-input" id="bwin-'+key+'" placeholder="Wish him a blessed year..." rows="1"></textarea><button class="comment-submit" onclick="submitBirthdayWish(this)" data-man="'+m.name+'" data-year="'+yr+'">Send</button></div>';
   var wishCount=wishes.length;
-  var toggleId='bwish-'+m.name.replace(/[^A-Za-z0-9]/g,"_");
-  return '<div class="birthday-card">'+
-    '<div class="birthday-emoji">&#127874;</div>'+
-    '<div class="birthday-title">'+when+'</div>'+
-    '<div class="birthday-text">'+dateStr+' &mdash; Wish him a blessed year, brothers! &#127881;</div>'+
-    '<div class="card-actions" style="justify-content:center;border-top:1px solid rgba(201,168,76,.25)">'+
-    '<button class="reply-btn" style="color:#8B6914;font-weight:500" onclick="toggleSection(\''+toggleId+'\')">&#127873;&nbsp;'+(wishCount>0?wishCount+' birthday wish'+(wishCount!==1?'es':''):'Send a birthday wish')+'</button>'+
-    '</div>'+
-    '<div class="comments-section" id="'+toggleId+'">'+wishHtml+'</div>'+
+  return '<div class="birthday-card">' +
+    '<div class="birthday-emoji">&#127874;</div>' +
+    '<div class="birthday-title">'+when+'</div>' +
+    '<div class="birthday-text">'+dateStr+' &mdash; Wish him a blessed year, brothers! &#127881;</div>' +
+    '<div class="card-actions" style="justify-content:center;border-top:1px solid rgba(201,168,76,.25)">' +
+    '<button class="reply-btn" style="color:#8B6914;font-weight:500" onclick="toggleSection(\''+toggleId+'\')">&#127873;&nbsp;'+(wishCount>0?wishCount+' birthday wish'+(wishCount!==1?'es':''):'Send a birthday wish')+'</button>' +
+    '</div>' +
+    '<div class="comments-section" id="'+toggleId+'">'+wishHtml+'</div>' +
     '</div>';
 }
+
 function summaryCardHTML(p,isPinned){
   var isPraise=p.category==="Praise Report";
   var cls=isPraise?"prayer-card is-praise":isPinned?"prayer-card is-pinned":"prayer-card";
@@ -601,7 +603,9 @@ async function markAnswered(prayerId,manName){
 }
 
 // BIRTHDAY WISHES
-async function submitBirthdayWish(manName,year){
+async function submitBirthdayWish(btnEl){
+  var manName=btnEl.getAttribute("data-man");
+  var year=parseInt(btnEl.getAttribute("data-year"));
   var key=manName.replace(/[^A-Za-z0-9]/g,"_");
   var input=document.getElementById("bwin-"+key);
   var who=document.getElementById("bwho-"+key);
