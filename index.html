@@ -361,6 +361,84 @@ function birthdayCardHTML(b){
     '</div>';
 }
 
+// DB
+async function dbFetch(path,opts){
+  opts=opts||{};
+  var res=await fetch(SUPABASE_URL+"/rest/v1/"+path,{
+    method:opts.method||"GET",mode:"cors",
+    headers:Object.assign({"apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY,"Content-Type":"application/json","Prefer":opts.prefer||"return=representation"},opts.headers||{}),
+    body:opts.body||undefined
+  });
+  if(!res.ok){var e=await res.text();throw new Error("HTTP "+res.status+": "+e);}
+  var t=await res.text();return t?JSON.parse(t):null;
+}
+
+// INIT
+async function init(){
+  try{
+    var results=await Promise.all([
+      dbFetch("men?select=*&order=name.asc"),
+      dbFetch("weekly?select=*&limit=1"),
+      dbFetch("prayers?select=*&order=created_at.desc"),
+      dbFetch("comments?select=*&order=created_at.asc"),
+      dbFetch("birthday_wishes?select=*&order=created_at.asc")
+    ]);
+    var menData=results[0],weeklyData=results[1],prayersData=results[2],commentsData=results[3];
+    birthdayWishes=results[4]||[];
+    if(!menData||!menData.length){showErr("No data found.");return;}
+    men=menData;
+    var wd=weeklyData&&weeklyData[0];
+    if(wd){if(wd.theme)WEEKLY.theme=wd.theme;if(wd.verse)WEEKLY.verse=wd.verse;if(wd.reference)WEEKLY.reference=wd.reference;if(wd.context)WEEKLY.context=wd.context;if(wd.prayer)WEEKLY.prayer=wd.prayer;if(wd.week_of)WEEKLY.week_of=wd.week_of;}
+    prayers={};men.forEach(function(m){prayers[m.name]=[];});
+    (prayersData||[]).forEach(function(p){if(prayers[p.man_name])prayers[p.man_name].push(p);});
+    comments={};
+    (commentsData||[]).forEach(function(c){if(!comments[c.prayer_id])comments[c.prayer_id]=[];comments[c.prayer_id].push(c);});
+    weeklyPrayers=(prayersData||[]).filter(function(p){return!p.answered;});
+    buildSlides();buildDots();buildQuicknav();
+    goTo(0,false);setupSwipe();
+    document.getElementById("btn-prev").addEventListener("click",function(){goTo(currentSlide-1);});
+    document.getElementById("btn-next").addEventListener("click",function(){goTo(currentSlide+1);});
+    document.getElementById("quicknav").addEventListener("change",function(){if(this.value==="__change__"){showIdentityPicker();}else if(this.value!==""){goTo(parseInt(this.value));}setTimeout(function(){document.getElementById("quicknav").value="";},100);});
+    var ls=document.getElementById("loading-screen");ls.classList.add("hidden");setTimeout(function(){ls.style.display="none";},500);
+    if(!getIdentity()){showIdentityPicker();}else{applyIdentity();}
+  }catch(e){console.error(e);showErr(e.message);}
+}
+function showErr(msg){document.getElementById("loading-screen").innerHTML='<div style="text-align:center;padding:40px 24px"><div style="font-size:48px;color:#C9A84C;margin-bottom:16px">&#10011;</div><div style="font-family:Playfair Display,serif;color:#C9A84C;font-size:16px;margin-bottom:12px">Error</div><div style="color:rgba(201,168,76,.5);font-size:13px;padding:0 12px">'+msg+'</div></div>';}
+
+// BUILD SLIDES
+function buildSlides(){
+  var track=document.getElementById("slider-track");track.innerHTML="";
+  track.appendChild(buildCoverSlide());
+  track.appendChild(buildBoardSlide());
+  track.appendChild(buildWeeklySlide());
+  men.forEach(function(man,i){track.appendChild(buildPersonSlide(man,i));});
+  totalSlides=3+men.length;
+  document.getElementById("topbar-week").textContent="Week of "+WEEKLY.week_of;
+}
+
+function buildCoverSlide(){
+  var div=document.createElement("div");div.className="slide";
+  div.innerHTML='<div class="cover-slide"><img src="'+LOGO_SRC+'" class="logo-img" alt="Kingdom Men Logo" /><div class="cover-week" id="cover-week-label">Week of '+WEEKLY.week_of+'</div><div class="cover-theme" id="cover-theme-label">Theme: '+WEEKLY.theme+'</div><div class="swipe-hint"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg> Swipe to begin</div></div>';
+  return div;
+}
+
+function buildBoardSlide(){
+  var div=document.createElement("div");div.className="slide";div.id="week-summary-slide";
+  var active=weeklyPrayers.filter(function(p){return!p.answered;});
+  var pinned=active.filter(function(p){return p.prayer_date&&!isDatePast(p.prayer_date);}).sort(function(a,b){return new Date(a.prayer_date)-new Date(b.prayer_date);});
+  var pinnedIds=pinned.map(function(p){return p.id;});
+  var regular=active.filter(function(p){return pinnedIds.indexOf(p.id)===-1;}).sort(function(a,b){return new Date(b.created_at)-new Date(a.created_at);}).slice(0,20);
+  var cards="";
+  var bdays=getBirthdayMen();
+  if(bdays.length){cards+='<div class="prayer-cat-label" style="margin-bottom:10px">&#127874; Birthdays</div>';bdays.forEach(function(b){cards+=birthdayCardHTML(b);});cards+='<div style="height:8px"></div>';}
+  if(pinned.length){cards+='<div class="prayer-cat-label" style="margin-bottom:10px">&#128204; Date-Specific Prayers</div>';pinned.forEach(function(p){cards+=summaryCardHTML(p,true);});}
+  if(regular.length){cards+='<div class="prayer-cat-label" style="margin-top:'+(pinned.length?'18px':'0')+';margin-bottom:10px">All Prayers</div>';regular.forEach(function(p){cards+=summaryCardHTML(p,false);});}
+  if(!pinned.length&&!regular.length&&!bdays.length)cards='<div class="empty-state"><div class="empty-state-icon">&#128591;</div>No active prayers yet.</div>';
+  div.innerHTML='<div class="slide-inner"><div class="person-header"><div><div class="person-name" style="font-size:18px">Prayer Board</div><div class="person-name-sub">Most recent &mdash; pinned at top</div></div></div><div class="search-wrap"><span class="search-icon">&#128269;</span><input class="search-input" id="board-search" type="text" placeholder="Search prayers, names, categories..." oninput="filterBoard(this.value)" /><button class="search-clear" id="search-clear-btn" onclick="clearSearch()">&#x2715;</button></div><div id="board-cards">'+cards+'</div></div>';
+  return div;
+}
+
+// ---- END RESTORED CORE FUNCTIONS ----
 function summaryCardHTML(p,isPinned){
   var isPraise=p.category==="Praise Report";
   var cls=isPraise?"prayer-card is-praise":isPinned?"prayer-card is-pinned":"prayer-card";
