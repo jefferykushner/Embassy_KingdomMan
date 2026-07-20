@@ -758,12 +758,13 @@ async function saveEditPrayer(){
   var prayerDate=document.getElementById("editprayer-date").value||null;
   if(!prayerText){status.textContent="Prayer text cannot be empty.";btn.disabled=false;return;}
   try{
-    await dbFetch("prayers?id=eq."+editingPrayerId,{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({category:category,prayer_text:prayerText,prayer_date:prayerDate})});
+    var today=new Date().toISOString().split("T")[0];
+    await dbFetch("prayers?id=eq."+editingPrayerId,{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({category:category,prayer_text:prayerText,prayer_date:prayerDate,post_date:today})});
     // Update local state
     var updated=false;
     [prayers[editingPrayerManName]||[],weeklyPrayers].forEach(function(arr){
       arr.forEach(function(p){
-        if(p.id===editingPrayerId){p.category=category;p.prayer_text=prayerText;p.prayer_date=prayerDate;updated=true;}
+        if(p.id===editingPrayerId){p.category=category;p.prayer_text=prayerText;p.prayer_date=prayerDate;p.post_date=today;updated=true;}
       });
     });
     refreshPersonSlide(editingPrayerManName);
