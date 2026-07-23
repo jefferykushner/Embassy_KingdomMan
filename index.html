@@ -208,6 +208,15 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
 #nav-arrows{display:none}
 #dots-bar{display:none}
 
+/* NEW BADGE */
+.badge-new{background:#E53E3E;color:#fff;border:none;font-size:9px;font-weight:700;letter-spacing:.06em;padding:2px 6px;border-radius:10px;animation:newPulse 2s ease-in-out infinite}
+@keyframes newPulse{0%,100%{opacity:1}50%{opacity:.7}}
+.testimony-card{background:linear-gradient(135deg,#f0f7f0 0%,#e8f5e9 100%);border:1px solid rgba(76,175,80,.35);border-radius:14px;padding:16px 18px;margin-bottom:12px}
+.testimony-card .prayer-card-text{color:#1b5e20}
+.testimony-date{font-size:11px;color:#2e7d32;margin-top:8px}
+.testimony-man{font-family:"Playfair Display",serif;font-size:13px;font-weight:600;color:#2e7d32;margin-bottom:6px}
+.pray-names{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
+
 /* MICRO-ANIMATIONS */
 @keyframes prayPulse{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
 @keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -245,6 +254,10 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
     <button class="tab-btn" id="tab-weekly" onclick="goTo(2)">
       <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
       <span>Weekly</span>
+    </button>
+    <button class="tab-btn" id="tab-testimony" onclick="goTo(3)">
+      <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <span>Testimonies</span>
     </button>
     <button class="tab-btn" id="tab-directory" onclick="showDirectoryOverlay()">
       <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
@@ -365,6 +378,13 @@ function catBadgeClass(category){
 
 var WEEKLY={theme:"God Orders Our Steps",verse:"The Lord directs the steps of the godly. He delights in every detail of their lives.",reference:"Psalm 37:23 (NLT)",context:"There are times when the path ahead feels unclear. Decisions pile up. Pressure builds. But we are not walking alone. God is not distant or unaware. He is actively ordering our steps, even when we cannot yet see where the road leads. As Kingdom men, we move forward in faith, trusting that He is guiding, providing, and positioning us exactly where we need to be.",prayer:"Heavenly Father, we thank You that You are a God who leads us. You are not silent, and You are not absent.\n\nLord, we place our plans, our decisions, and our uncertainty into Your hands. Order our steps this week. Guide us in the choices we need to make.\n\nFor the men facing big decisions, we ask for clarity and peace. Help us not to rush ahead or fall behind, but to walk in step with You.\n\nWe thank You, Lord, that You are faithful to guide us. We choose to trust You with every step.\n\nIn Jesus name, Amen.",week_of:"June 22nd, 2026"};
 var men=[],prayers={},weeklyPrayers=[],comments={},birthdayWishes=[];
+var prayerPrays={};
+var lastVisit=null;
+
+// LAST VISIT TRACKING
+function getLastVisit(){try{var t=localStorage.getItem('km_last_visit');return t?new Date(t):null;}catch(e){return null;}}
+function updateLastVisit(){try{localStorage.setItem('km_last_visit',new Date().toISOString());}catch(e){}}
+function isNewSinceLastVisit(createdAt){if(!lastVisit)return false;return new Date(createdAt)>lastVisit;}
 var currentSlide=0,totalSlides=0;
 var addingForMan=null,profileForMan=null,pendingDeleteId=null,pendingDeleteManName=null;
 
@@ -392,7 +412,7 @@ function goToMyPage(){
   if(!id||id==='__guest__')return;
   var man=men.find(function(m){return m.name===id;});
   if(!man)return;
-  goTo(3+men.indexOf(man));
+  goTo(4+men.indexOf(man));
 }
 function showIdentityPicker(){
   var grid=document.getElementById('identity-grid');
@@ -491,10 +511,17 @@ async function init(){
       dbFetch("weekly?select=*&limit=1"),
       dbFetch("prayers?select=*&order=created_at.desc"),
       dbFetch("comments?select=*&order=created_at.asc"),
-      dbFetch("birthday_wishes?select=*&order=created_at.asc")
+      dbFetch("birthday_wishes?select=*&order=created_at.asc"),
+      dbFetch("prayer_prays?select=*&order=created_at.asc")
     ]);
     var menData=results[0],weeklyData=results[1],prayersData=results[2],commentsData=results[3];
     birthdayWishes=results[4]||[];
+    prayerPrays={};
+    (results[5]||[]).forEach(function(pp){
+      if(!prayerPrays[pp.prayer_id])prayerPrays[pp.prayer_id]=[];
+      prayerPrays[pp.prayer_id].push(pp.man_name);
+    });
+    lastVisit=getLastVisit();
     if(!menData||!menData.length){showErr("No data found.");return;}
     men=menData;
     var wd=weeklyData&&weeklyData[0];
@@ -511,6 +538,7 @@ async function init(){
     document.getElementById("quicknav").addEventListener("change",function(){if(this.value==="__change__"){showIdentityPicker();}else if(this.value!==""){goTo(parseInt(this.value));}setTimeout(function(){document.getElementById("quicknav").value="";},100);});
     var ls=document.getElementById("loading-screen");ls.classList.add("hidden");setTimeout(function(){ls.style.display="none";},500);
     if(!getIdentity()){showIdentityPicker();}else{applyIdentity();}
+    setTimeout(updateLastVisit,3000);
   }catch(e){console.error(e);showErr(e.message);}
 }
 function showErr(msg){document.getElementById("loading-screen").innerHTML='<div style="text-align:center;padding:40px 24px"><div style="font-size:48px;color:#C9A84C;margin-bottom:16px">&#10011;</div><div style="font-family:Playfair Display,serif;color:#C9A84C;font-size:16px;margin-bottom:12px">Error</div><div style="color:rgba(201,168,76,.5);font-size:13px;padding:0 12px">'+msg+'</div></div>';}
@@ -521,8 +549,9 @@ function buildSlides(){
   track.appendChild(buildCoverSlide());
   track.appendChild(buildBoardSlide());
   track.appendChild(buildWeeklySlide());
+  track.appendChild(buildTestimonySlide());
   men.forEach(function(man,i){track.appendChild(buildPersonSlide(man,i));});
-  totalSlides=3+men.length;
+  totalSlides=4+men.length;
   document.getElementById("topbar-week").textContent="Week of "+WEEKLY.week_of;
 }
 
@@ -565,7 +594,9 @@ function summaryCardHTML(p,isPinned){
   var prayCount=p.prayer_count||0;
   var tapped=hasPrayed(p.id);
   var prayBtnCls="pray-btn"+(tapped?" tapped":"");
-  var prayLabel="&#x1F64F;&nbsp;"+(prayCount>0?prayCount+" Praying":"Praying");
+  var newBadge=isNewSinceLastVisit(p.created_at)?'<span class="badge badge-new">NEW</span>':"";
+
+  var prayLabel=prayBtnLabel(p.id,prayCount);
   var cardComments=comments[p.id]||[];
   var commentCount=cardComments.length;
   var commHtml="";
@@ -574,7 +605,7 @@ function summaryCardHTML(p,isPinned){
   var nameOpts=men.map(function(m){var sel=(myId2===m.name)?' selected':'';return'<option value="'+m.name+'"'+sel+'>'+m.name+'</option>';}).join("");
   commHtml+='<div class="add-comment-form"><textarea class="comment-input" id="scin-'+p.id+'" placeholder="Write an encouragement..." rows="2"></textarea><div class="add-comment-row"><select class="comment-who" id="swho-'+p.id+'">'+nameOpts+'</select><button class="comment-submit" onclick="submitSummaryComment('+p.id+')">Send</button></div></div>';
   return '<div class="'+cls+'" id="scard-'+p.id+'">'+
-    '<div class="prayer-card-top"><div class="prayer-card-badges">'+pinBadge+catBadge+manBadge+'</div></div>'+
+    '<div class="prayer-card-top"><div class="prayer-card-badges">'+newBadge+pinBadge+catBadge+manBadge+'</div></div>'+
     '<div class="prayer-card-text">'+p.prayer_text+'</div>'+
     '<div class="prayer-card-dates"><span class="date-chip">Posted '+formatDate(p.post_date)+'</span></div>'+
     '<div class="card-actions">'+
@@ -596,6 +627,33 @@ function buildWeeklySlide(){
     '<div class="verse-block"><p id="weekly-verse-text">&ldquo;'+WEEKLY.verse+'&rdquo;</p><span id="weekly-verse-ref">&mdash; '+WEEKLY.reference+'</span></div>'+
     '<div class="prayer-cat-label">Context</div><div class="weekly-block" style="margin-bottom:18px"><p id="weekly-context-text">'+WEEKLY.context+'</p></div>'+
     '<div class="prayer-cat-label">Corporate Prayer</div><div class="weekly-block" id="weekly-prayer-block">'+pHTML+'</div></div>';
+  return div;
+}
+
+function buildTestimonySlide(){
+  var div=document.createElement("div");div.className="slide";div.id="testimony-slide";
+  var allAnswered=[];
+  Object.keys(prayers).forEach(function(manName){
+    (prayers[manName]||[]).forEach(function(p){
+      if(p.answered)allAnswered.push(p);
+    });
+  });
+  allAnswered.sort(function(a,b){return new Date(b.created_at)-new Date(a.created_at);});
+  var cards="";
+  if(!allAnswered.length){
+    cards='<div class="empty-state"><div class="empty-state-icon">&#10024;</div>No answered prayers yet.<br>When God answers, mark a prayer as answered and it will appear here as a testimony!</div>';
+  } else {
+    allAnswered.slice(0,30).forEach(function(p){
+      var isPraise=p.category==="Praise Report";
+      cards+='<div class="testimony-card">';
+      cards+='<div class="testimony-man">'+p.man_name+'</div>';
+      cards+='<div class="prayer-card-badges" style="margin-bottom:8px"><span class="badge badge-answered">&#10003; Answered</span>'+(isPraise?'<span class="badge badge-praise">&#128588; Praise</span>':'<span class="'+catBadgeClass(p.category)+'">'+p.category+'</span>')+'</div>';
+      cards+='<div class="prayer-card-text">'+p.prayer_text+'</div>';
+      cards+='<div class="testimony-date">Posted '+formatDate(p.post_date)+'</div>';
+      cards+='</div>';
+    });
+  }
+  div.innerHTML='<div class="slide-inner"><div class="person-header"><div><div class="person-name" style="font-size:18px">&#10024; God Is Faithful</div><div class="person-name-sub">Answered prayers &mdash; testimonies of His goodness</div></div></div>'+cards+'</div>';
   return div;
 }
 
@@ -651,7 +709,7 @@ function prayerCardHTML(p){
   var prayCount=p.prayer_count||0;
   var tapped=hasPrayed(p.id);
   var prayBtnCls="pray-btn"+(tapped?" tapped":"");
-  var prayLabel="&#x1F64F;&nbsp;"+(prayCount>0?prayCount+" Praying":"Praying");
+  var prayLabel=prayBtnLabel(p.id,prayCount);
   var cardComments=comments[p.id]||[];
   var commentCount=cardComments.length;
   var commHtml="";
@@ -662,7 +720,7 @@ function prayerCardHTML(p){
   var editBtn='<button class="delete-btn" onclick="openEditPrayer('+p.id+',this)" data-man="'+sn+'" title="Edit" style="color:rgba(201,168,76,.5)">&#x270E;</button>';
   var ansBtn=!isAnswered?'<button class="answered-btn" onclick="markAnswered('+p.id+',\''+sn+'\')">&#10003; Answered</button>':"";
   return '<div class="'+cls+'" id="pcard-'+p.id+'">'+
-    '<div class="prayer-card-top"><div class="prayer-card-badges">'+pinBadge+catBadge+'</div>'+editBtn+'<button class="delete-btn" onclick="askDelete('+p.id+',\''+sn+'\',\''+st+'\')" title="Delete">&#x2715;</button></div>'+
+    '<div class="prayer-card-top"><div class="prayer-card-badges">'+newBadge+pinBadge+catBadge+'</div>'+editBtn+'<button class="delete-btn" onclick="askDelete('+p.id+',\''+sn+'\',\''+st+'\')" title="Delete">&#x2715;</button></div>'+
     '<div class="prayer-card-text">'+p.prayer_text+'</div>'+
     '<div class="prayer-card-dates"><span class="date-chip">Posted '+formatDate(p.post_date)+'</span>'+pdc+'</div>'+
     '<div class="card-actions">'+
@@ -677,7 +735,7 @@ function prayerCardHTML(p){
 // DOTS & NAV
 function buildDots(){var bar=document.getElementById("dots-bar");bar.innerHTML="";for(var i=0;i<totalSlides;i++){var d=document.createElement("div");d.className="dot";(function(idx){d.addEventListener("click",function(){goTo(idx);});})(i);bar.appendChild(d);}}
 function updateDots(){document.querySelectorAll(".dot").forEach(function(d,i){d.classList.toggle("active",i===currentSlide);});}
-function buildQuicknav(){var sel=document.getElementById("quicknav");sel.innerHTML='<option value="">Jump to&hellip;</option><option value="1">&#128203; Prayer Board</option><option value="2">&#128591; Prayer &amp; Theme</option>';men.forEach(function(man,i){var opt=document.createElement("option");opt.value=3+i;opt.textContent=man.name;sel.appendChild(opt);});var chg=document.createElement("option");chg.value="__change__";chg.textContent="\u2699 Change who I am";sel.appendChild(chg);}
+function buildQuicknav(){var sel=document.getElementById("quicknav");sel.innerHTML='<option value="">Jump to&hellip;</option><option value="1">&#128203; Prayer Board</option><option value="2">&#128591; Prayer &amp; Theme</option><option value="3">&#10024; God Is Faithful</option>';men.forEach(function(man,i){var opt=document.createElement("option");opt.value=4+i;opt.textContent=man.name;sel.appendChild(opt);});var chg=document.createElement("option");chg.value="__change__";chg.textContent="\u2699 Change who I am";sel.appendChild(chg);}
 function goTo(idx,animate){
   if(animate===undefined)animate=true;
   if(idx<0||idx>=totalSlides)return;
@@ -689,20 +747,21 @@ function goTo(idx,animate){
   updateDots();
   document.getElementById("btn-prev").disabled=idx===0;
   document.getElementById("btn-next").disabled=idx===totalSlides-1;
-  var labels=["","Prayer Board","Prayer & Theme"];
-  document.getElementById("slide-counter").textContent=idx<3?(labels[idx]||""):(idx-2)+" / "+men.length;
+  var labels=["","Prayer Board","Prayer & Theme","God Is Faithful"];
+  document.getElementById("slide-counter").textContent=idx<4?(labels[idx]||""):(idx-3)+" / "+men.length;
   document.getElementById("quicknav-wrap").style.display=idx>=1?"block":"none";
   document.getElementById("nav-arrows").className=idx===0?"dark":"light";
   // Update tab bar active state
-  ["tab-board","tab-weekly","tab-directory","tab-mypage"].forEach(function(id){
+  ["tab-board","tab-weekly","tab-testimony","tab-directory","tab-mypage"].forEach(function(id){
     var el=document.getElementById(id);if(el)el.classList.remove("active");
   });
   if(idx===1){var t=document.getElementById("tab-board");if(t)t.classList.add("active");}
   else if(idx===2){var t=document.getElementById("tab-weekly");if(t)t.classList.add("active");}
-  else if(idx>=3){
+  else if(idx===3){var t=document.getElementById("tab-testimony");if(t)t.classList.add("active");}
+  else if(idx>=4){
     var myId=getIdentity();
     var myMan=men.find(function(m){return m.name===myId;});
-    if(myMan&&idx===3+men.indexOf(myMan)){var t=document.getElementById("tab-mypage");if(t)t.classList.add("active");}
+    if(myMan&&idx===4+men.indexOf(myMan)){var t=document.getElementById("tab-mypage");if(t)t.classList.add("active");}
   }
   // Show/hide tab bar on cover
   var tabBar=document.getElementById("tab-bar");
@@ -719,6 +778,8 @@ var outer=document.getElementById("slider-outer");var sx=0,sy=0;outer.addEventLi
 // PRAY BUTTON (fromSummary=true means called from board)
 async function tapPray(prayerId,fromSummary){
   if(hasPrayed(prayerId))return;
+  var myId=getIdentity();
+  var myName=(myId&&myId!=="__guest__")?myId:"Someone";
   var p=null;
   Object.values(prayers).forEach(function(arr){arr.forEach(function(x){if(x.id===prayerId)p=x;});});
   weeklyPrayers.forEach(function(x){if(x.id===prayerId)p=x;});
@@ -726,13 +787,27 @@ async function tapPray(prayerId,fromSummary){
   var newCount=(p.prayer_count||0)+1;
   p.prayer_count=newCount;
   markPrayed(prayerId);
-  var label="&#x1F64F;&nbsp;"+newCount+" Praying";
+  if(!prayerPrays[prayerId])prayerPrays[prayerId]=[];
+  prayerPrays[prayerId].push(myName);
+  var label=prayBtnLabel(prayerId,newCount);
   var b1=document.getElementById("praybtn-"+prayerId);
   var b2=document.getElementById("spraybtn-"+prayerId);
   if(b1){b1.innerHTML=label;b1.classList.add("tapped");}
   if(b2){b2.innerHTML=label;b2.classList.add("tapped");}
-  try{await dbFetch("prayers?id=eq."+prayerId,{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({prayer_count:newCount})});}
-  catch(e){console.error(e);}
+  try{
+    await Promise.all([
+      dbFetch("prayers?id=eq."+prayerId,{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({prayer_count:newCount})}),
+      dbFetch("prayer_prays",{method:"POST",prefer:"return=minimal",body:JSON.stringify({prayer_id:prayerId,man_name:myName})})
+    ]);
+    showSave("&#x1F64F; Standing with "+p.man_name);
+  }catch(e){console.error(e);}
+}
+
+function prayBtnLabel(prayerId,count){
+  var names=prayerPrays[prayerId]||[];
+  if(!names.length)return"&#x1F64F;&nbsp;Praying";
+  if(names.length<=2)return"&#x1F64F;&nbsp;"+names.join(" & ")+" praying";
+  return"&#x1F64F;&nbsp;"+names.slice(0,2).join(", ")+" & "+(names.length-2)+" more praying";
 }
 
 // TOGGLE SECTION
@@ -1046,7 +1121,7 @@ function showDirectoryOverlay(){
     tile.className="identity-tile";
     tile.style.cursor="pointer";
     tile.innerHTML='<div class="identity-avatar">'+initials+'</div><div class="identity-name">'+m.name+'</div>';
-    tile.addEventListener("click",function(){closeDirectory();goTo(3+i);});
+    tile.addEventListener("click",function(){closeDirectory();goTo(4+i);});
     grid.appendChild(tile);
   });
   document.getElementById("directory-overlay").classList.add("open");
