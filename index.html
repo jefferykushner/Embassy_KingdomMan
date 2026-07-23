@@ -217,6 +217,59 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
 .testimony-man{font-family:"Playfair Display",serif;font-size:13px;font-weight:600;color:#2e7d32;margin-bottom:6px}
 .pray-names{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
 
+
+/* DARK MODE */
+.dark-mode{--cream:#1A1A14;--dark:#0A0A06;--navy:#0D1B2A}
+.dark-mode .slide-inner{background:var(--cream)!important}
+.dark-mode .prayer-card{background:#1F1E18;border-color:rgba(201,168,76,.15)}
+.dark-mode .prayer-card.is-praise{background:#142014;border-color:rgba(76,175,80,.25)}
+.dark-mode .prayer-card.is-pinned{background:#1F1C10;border-color:rgba(201,168,76,.3)}
+.dark-mode .prayer-card.is-answered{background:#142014;border-color:rgba(76,175,80,.25)}
+.dark-mode .prayer-card-text{color:#D4CDB8}
+.dark-mode .prayer-card-dates .date-chip{color:#8A8070}
+.dark-mode .person-name{color:var(--gold-light)}
+.dark-mode .person-name-sub{color:#8A8070}
+.dark-mode .person-header{border-bottom-color:rgba(201,168,76,.15)}
+.dark-mode .weekly-block{background:#1F1E18;border-color:rgba(201,168,76,.15)}
+.dark-mode .weekly-block p{color:#D4CDB8}
+.dark-mode .verse-block{background:rgba(201,168,76,.08);border-left-color:rgba(201,168,76,.4)}
+.dark-mode .verse-block p{color:#D4CDB8}
+.dark-mode .comment-item{background:rgba(201,168,76,.06);border-left-color:rgba(201,168,76,.15)}
+.dark-mode .comment-text{color:#C4BDA8}
+.dark-mode .comment-input{background:#1F1E18;color:#D4CDB8;border-color:rgba(201,168,76,.2)}
+.dark-mode .comment-who{background:#1F1E18;color:#D4CDB8;border-color:rgba(201,168,76,.2)}
+.dark-mode .search-input{background:#1F1E18;color:#D4CDB8;border-color:rgba(201,168,76,.2)}
+.dark-mode .prayer-cat-label{color:rgba(201,168,76,.6)}
+.dark-mode .prayer-cat-label::after{background:linear-gradient(to right,rgba(201,168,76,.15),transparent)}
+.dark-mode .card-actions{border-top-color:rgba(201,168,76,.1)}
+.dark-mode .pray-btn{border-color:rgba(201,168,76,.2);color:#8A8070}
+.dark-mode .reply-btn{color:#8A8070}
+.dark-mode .answered-btn{border-color:rgba(76,175,80,.3);color:#5B9B5B}
+.dark-mode .delete-btn{color:rgba(180,100,100,.4)}
+.dark-mode .birthday-card{background:linear-gradient(135deg,#1F1C10 0%,#25200E 100%);border-color:rgba(201,168,76,.3)}
+.dark-mode .birthday-title{color:var(--gold-light)}
+.dark-mode .birthday-text{color:#A09060}
+.dark-mode .testimony-card{background:linear-gradient(135deg,#142014 0%,#1A2A1A 100%);border-color:rgba(76,175,80,.25)}
+.dark-mode .testimony-card .prayer-card-text{color:#A0D0A0}
+.dark-mode .testimony-man{color:#70B070}
+.dark-mode .empty-state{color:#6A6050}
+.dark-mode .icon-btn{border-color:rgba(201,168,76,.2);color:rgba(201,168,76,.6)}
+.dark-mode .answered-section-toggle{border-color:rgba(201,168,76,.15);color:#6A6050}
+.dark-mode .add-comment-form{border-top-color:rgba(201,168,76,.1)}
+.dark-mode #quicknav{background:rgba(201,168,76,.06)}
+.dark-mode .identity-tile{background:rgba(201,168,76,.04);border-color:rgba(201,168,76,.15)}
+/* DARK MODE TOGGLE */
+#dark-toggle{position:fixed;top:11px;right:60px;z-index:15;background:transparent;border:none;font-size:18px;cursor:pointer;padding:4px;-webkit-tap-highlight-color:transparent;opacity:.6;transition:opacity .2s}
+#dark-toggle:hover,#dark-toggle:active{opacity:1}
+/* OFFLINE INDICATOR */
+.offline-bar{display:none;position:fixed;top:0;left:0;right:0;background:#8B6914;color:#fff;text-align:center;font-size:12px;font-family:"DM Sans",sans-serif;padding:3px;z-index:25;letter-spacing:.05em}
+.offline-bar.show{display:block}
+
+
+/* FOCUS STYLES */
+.tab-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:8px}
+.icon-btn:focus-visible,.pray-btn:focus-visible,.reply-btn:focus-visible,.answered-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.overlay-save:focus-visible,.comment-submit:focus-visible{outline:2px solid var(--dark);outline-offset:2px}
 /* MICRO-ANIMATIONS */
 @keyframes prayPulse{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
 @keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -230,6 +283,7 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
 </style>
 </head>
 <body>
+<div class="offline-bar" id="offline-bar">&#9888; Offline &mdash; showing cached data</div>
 <div id="loading-screen">
   <div class="loading-cross">&#10011;</div>
   <div class="loading-text">Loading prayer guide&hellip;</div>
@@ -238,6 +292,7 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
   <div id="topbar">
     <div><div id="topbar-title">Kingdom Men&rsquo;s &mdash; Iron Sharpens Iron</div><div id="topbar-week"></div></div>
     <div style="display:flex;align-items:center;gap:8px"><button id="mypage-btn" onclick="goToMyPage()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg> My Page</button><div id="slide-counter"></div></div>
+  <button id="dark-toggle" onclick="toggleDarkMode()" title="Toggle dark mode" aria-label="Toggle dark mode">&#x1F319;</button>
   </div>
   <div id="dots-bar"></div>
   <div id="quicknav-wrap"><select id="quicknav"><option value="">Jump to&hellip;</option></select></div>
@@ -247,23 +302,23 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
     <button class="arrow-btn" id="btn-next"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
   </div>
   <div id="tab-bar">
-    <button class="tab-btn" id="tab-board" onclick="goTo(1)">
+    <button class="tab-btn" id="tab-board" onclick="goTo(1)" aria-label="Prayer Board">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       <span>Board</span>
     </button>
-    <button class="tab-btn" id="tab-weekly" onclick="goTo(2)">
+    <button class="tab-btn" id="tab-weekly" onclick="goTo(2)" aria-label="Weekly Theme">
       <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
       <span>Weekly</span>
     </button>
-    <button class="tab-btn" id="tab-testimony" onclick="goTo(3)">
+    <button class="tab-btn" id="tab-testimony" onclick="goTo(3)" aria-label="Testimonies">
       <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
       <span>Testimonies</span>
     </button>
-    <button class="tab-btn" id="tab-directory" onclick="showDirectoryOverlay()">
+    <button class="tab-btn" id="tab-directory" onclick="showDirectoryOverlay()" aria-label="Brothers Directory">
       <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
       <span>Brothers</span>
     </button>
-    <button class="tab-btn" id="tab-mypage" onclick="goToMyPage()">
+    <button class="tab-btn" id="tab-mypage" onclick="goToMyPage()" aria-label="My Page">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
       <span>My Page</span>
     </button>
@@ -272,7 +327,7 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
 <div class="save-indicator" id="save-indicator"></div>
 <!-- ADD PRAYER -->
 <div class="overlay" id="add-overlay">
-  <div class="overlay-header"><div class="overlay-title" id="add-title">Add Prayer</div><button class="overlay-close" onclick="closeAddPrayer()">Cancel</button></div>
+  <div class="overlay-header"><div class="overlay-title" id="add-title">Add Prayer</div><button class="overlay-close" onclick="closeAddPrayer()" aria-label="Close">Cancel</button></div>
   <div class="overlay-body">
     <div><label class="form-label">Category</label>
     <select class="form-select" id="add-category">
@@ -291,7 +346,7 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
 </div>
 <!-- PROFILE -->
 <div class="overlay" id="profile-overlay">
-  <div class="overlay-header"><div class="overlay-title" id="profile-title">My Profile</div><button class="overlay-close" onclick="closeProfile()">Cancel</button></div>
+  <div class="overlay-header"><div class="overlay-title" id="profile-title">My Profile</div><button class="overlay-close" onclick="closeProfile()" aria-label="Close">Cancel</button></div>
   <div class="overlay-body">
     <p class="form-hint" style="color:rgba(201,168,76,.55)">Your email will be used for the weekly prayer digest notification.</p>
     <div><label class="form-label">Email Address</label><input class="form-input" type="email" id="profile-email" placeholder="your@email.com" /></div>
@@ -304,7 +359,7 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
 </div>
 <!-- WEEKLY EDIT -->
 <div class="overlay" id="weekly-edit-overlay">
-  <div class="overlay-header"><div class="overlay-title">Edit This Week</div><button class="overlay-close" onclick="closeWeeklyEdit()">Cancel</button></div>
+  <div class="overlay-header"><div class="overlay-title">Edit This Week</div><button class="overlay-close" onclick="closeWeeklyEdit()" aria-label="Close">Cancel</button></div>
   <div class="overlay-body">
     <p class="form-hint" style="color:rgba(201,168,76,.55)">Changes appear for everyone immediately.</p>
     <div><label class="form-label">Week Of</label><input id="we-week" class="form-input" type="text" placeholder="e.g. June 22nd, 2026" /></div>
@@ -346,7 +401,7 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
 <div class="overlay" id="directory-overlay">
   <div class="overlay-header">
     <div class="overlay-title">Brothers</div>
-    <button class="overlay-close" onclick="closeDirectory()">Close</button>
+    <button class="overlay-close" onclick="closeDirectory()" aria-label="Close directory">Close</button>
   </div>
   <div class="overlay-body" style="padding:20px">
     <div class="identity-grid" id="directory-grid" style="grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:12px"></div>
@@ -433,6 +488,34 @@ function getPrayedSet(){try{return new Set(JSON.parse(localStorage.getItem('km_p
 function markPrayed(id){try{var s=getPrayedSet();s.add(id);localStorage.setItem('km_prayed',JSON.stringify([...s]));}catch(e){}}
 function hasPrayed(id){return getPrayedSet().has(id);}
 
+// DARK MODE
+function getDarkPref(){
+  try{var p=localStorage.getItem('km_dark');if(p!==null)return p==='true';return window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches;}
+  catch(e){return false;}
+}
+function applyDarkMode(dark){
+  document.body.classList.toggle('dark-mode',dark);
+  var btn=document.getElementById('dark-toggle');
+  if(btn)btn.textContent=dark?'\u2600':'\u{1F319}';
+}
+function toggleDarkMode(){
+  var isDark=document.body.classList.contains('dark-mode');
+  var newVal=!isDark;
+  try{localStorage.setItem('km_dark',newVal);}catch(e){}
+  applyDarkMode(newVal);
+}
+// Apply immediately
+applyDarkMode(getDarkPref());
+
+// OFFLINE CACHE
+function cacheData(menData,weeklyData,prayersData,commentsData,birthdayData,praysData){
+  try{localStorage.setItem('km_cache',JSON.stringify({men:menData,weekly:weeklyData,prayers:prayersData,comments:commentsData,birthdays:birthdayData,prays:praysData,ts:Date.now()}));}
+  catch(e){}
+}
+function getCachedData(){
+  try{var c=localStorage.getItem('km_cache');return c?JSON.parse(c):null;}catch(e){return null;}
+}
+
 // HELPERS
 function formatDate(ds){if(!ds)return"";var d=new Date(ds+"T12:00:00");return d.toLocaleDateString("en-CA",{month:"short",day:"numeric",year:"numeric"});}
 function isDatePast(ds){if(!ds)return false;return new Date(ds+"T23:59:59")<new Date();}
@@ -505,6 +588,7 @@ async function dbFetch(path,opts){
 
 // INIT
 async function init(){
+  var isOffline=false;
   try{
     var results=await Promise.all([
       dbFetch("men?select=*&order=name.asc"),
@@ -522,6 +606,7 @@ async function init(){
       prayerPrays[pp.prayer_id].push(pp.man_name);
     });
     lastVisit=getLastVisit();
+    cacheData(menData,weeklyData,prayersData,results[3],results[4],results[5]);
     if(!menData||!menData.length){showErr("No data found.");return;}
     men=menData;
     var wd=weeklyData&&weeklyData[0];
@@ -539,7 +624,39 @@ async function init(){
     var ls=document.getElementById("loading-screen");ls.classList.add("hidden");setTimeout(function(){ls.style.display="none";},500);
     if(!getIdentity()){showIdentityPicker();}else{applyIdentity();}
     setTimeout(updateLastVisit,3000);
-  }catch(e){console.error(e);showErr(e.message);}
+  }catch(e){
+    console.error("Load error:",e);
+    var cached=getCachedData();
+    if(cached&&cached.men&&cached.men.length){
+      console.log("Using cached data");
+      isOffline=true;
+      var menData=cached.men,weeklyData=cached.weekly,prayersData=cached.prayers||[];
+      var commentsData=cached.comments||[];
+      birthdayWishes=cached.birthdays||[];
+      prayerPrays={};
+      (cached.prays||[]).forEach(function(pp){if(!prayerPrays[pp.prayer_id])prayerPrays[pp.prayer_id]=[];prayerPrays[pp.prayer_id].push(pp.man_name);});
+      lastVisit=getLastVisit();
+      men=menData;
+      var wd=weeklyData&&weeklyData[0];
+      if(wd){if(wd.theme)WEEKLY.theme=wd.theme;if(wd.verse)WEEKLY.verse=wd.verse;if(wd.reference)WEEKLY.reference=wd.reference;if(wd.context)WEEKLY.context=wd.context;if(wd.prayer)WEEKLY.prayer=wd.prayer;if(wd.week_of)WEEKLY.week_of=wd.week_of;}
+      prayers={};men.forEach(function(m){prayers[m.name]=[];});
+      prayersData.forEach(function(p){if(prayers[p.man_name])prayers[p.man_name].push(p);});
+      comments={};
+      commentsData.forEach(function(c){if(!comments[c.prayer_id])comments[c.prayer_id]=[];comments[c.prayer_id].push(c);});
+      weeklyPrayers=prayersData.filter(function(p){return!p.answered;});
+      buildSlides();buildDots();buildQuicknav();
+      goTo(0,false);setupSwipe();
+      document.getElementById("btn-prev").addEventListener("click",function(){goTo(currentSlide-1);});
+      document.getElementById("btn-next").addEventListener("click",function(){goTo(currentSlide+1);});
+      document.getElementById("quicknav").addEventListener("change",function(){if(this.value==="__change__"){showIdentityPicker();}else if(this.value!==""){goTo(parseInt(this.value));}setTimeout(function(){document.getElementById("quicknav").value="";},100);});
+      var ls=document.getElementById("loading-screen");ls.classList.add("hidden");setTimeout(function(){ls.style.display="none";},500);
+      if(!getIdentity()){showIdentityPicker();}else{applyIdentity();}
+      document.getElementById("offline-bar").classList.add("show");
+      setTimeout(updateLastVisit,3000);
+    } else {
+      showErr(e.message);
+    }
+  }
 }
 function showErr(msg){document.getElementById("loading-screen").innerHTML='<div style="text-align:center;padding:40px 24px"><div style="font-size:48px;color:#C9A84C;margin-bottom:16px">&#10011;</div><div style="font-family:Playfair Display,serif;color:#C9A84C;font-size:16px;margin-bottom:12px">Error</div><div style="color:rgba(201,168,76,.5);font-size:13px;padding:0 12px">'+msg+'</div></div>';}
 
@@ -580,7 +697,7 @@ function buildBoardSlide(){
   if(pinned.length){cards+='<div class="prayer-cat-label" style="margin-bottom:10px">&#128204; Date-Specific Prayers</div>';pinned.forEach(function(p){cards+=summaryCardHTML(p,true);});}
   if(regular.length){cards+='<div class="prayer-cat-label" style="margin-top:'+(pinned.length?'18px':'0')+';margin-bottom:10px">All Prayers</div>';regular.forEach(function(p){cards+=summaryCardHTML(p,false);});}
   if(!pinned.length&&!regular.length&&!bdays.length)cards='<div class="empty-state"><div class="empty-state-icon">&#128591;</div>No active prayers yet.</div>';
-  div.innerHTML='<div class="slide-inner"><div class="person-header"><div><div class="person-name" style="font-size:18px">Prayer Board</div><div class="person-name-sub">Most recent &mdash; pinned at top</div></div></div><div class="search-wrap"><span class="search-icon">&#128269;</span><input class="search-input" id="board-search" type="text" placeholder="Search prayers, names, categories..." oninput="filterBoard(this.value)" /><button class="search-clear" id="search-clear-btn" onclick="clearSearch()">&#x2715;</button></div><div id="board-cards">'+cards+'</div></div>';
+  div.innerHTML='<div class="slide-inner"><div class="person-header"><div><div class="person-name" style="font-size:18px">Prayer Board</div><div class="person-name-sub">Most recent &mdash; pinned at top</div></div></div><div class="search-wrap"><span class="search-icon">&#128269;</span><input class="search-input" id="board-search" type="text" aria-label="Search prayers" placeholder="Search prayers, names, categories..." oninput="filterBoard(this.value)" /><button class="search-clear" id="search-clear-btn" onclick="clearSearch()">&#x2715;</button></div><div id="board-cards">'+cards+'</div></div>';
   return div;
 }
 
