@@ -717,6 +717,7 @@ function prayerCardHTML(p){
   var myId=getIdentity();
   var nameOpts=men.map(function(m){var sel=(myId===m.name)?' selected':'';return'<option value="'+m.name+'"'+sel+'>'+m.name+'</option>';}).join("");
   commHtml+='<div class="add-comment-form"><textarea class="comment-input" id="cin-'+p.id+'" placeholder="Write an encouragement..." rows="2"></textarea><div class="add-comment-row"><select class="comment-who" id="who-'+p.id+'">'+nameOpts+'</select><button class="comment-submit" onclick="submitComment('+p.id+')">Send</button></div></div>';
+  var newBadge=isNewSinceLastVisit(p.created_at)?'<span class="badge badge-new">NEW</span>':"";
   var editBtn='<button class="delete-btn" onclick="openEditPrayer('+p.id+',this)" data-man="'+sn+'" title="Edit" style="color:rgba(201,168,76,.5)">&#x270E;</button>';
   var ansBtn=!isAnswered?'<button class="answered-btn" onclick="markAnswered('+p.id+',\''+sn+'\')">&#10003; Answered</button>':"";
   return '<div class="'+cls+'" id="pcard-'+p.id+'">'+
