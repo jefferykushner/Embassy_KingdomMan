@@ -198,6 +198,7 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
 
 /* BOTTOM TAB BAR */
 #tab-bar{position:fixed;bottom:0;left:0;right:0;background:var(--navy);border-top:1px solid rgba(201,168,76,.3);display:flex;justify-content:space-around;padding:6px 0 max(6px,env(safe-area-inset-bottom));z-index:20}
+@media(min-width:600px){#tab-bar{display:flex!important}}
 .tab-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 12px;cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:60px}
 .tab-btn svg{width:20px;height:20px;stroke:rgba(201,168,76,.4);fill:none;stroke-width:2;transition:stroke .2s}
 .tab-btn span{font-size:10px;font-family:"DM Sans",sans-serif;color:rgba(201,168,76,.4);letter-spacing:.03em;transition:color .2s}
@@ -527,7 +528,7 @@ function buildSlides(){
 
 function buildCoverSlide(){
   var div=document.createElement("div");div.className="slide";
-  div.innerHTML='<div class="cover-slide"><img src="'+LOGO_SRC+'" class="logo-img" alt="Kingdom Men Logo" /><div class="cover-week" id="cover-week-label">Week of '+WEEKLY.week_of+'</div><div class="cover-theme" id="cover-theme-label">Theme: '+WEEKLY.theme+'</div><div class="swipe-hint"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg> Swipe to begin</div></div>';
+  div.innerHTML='<div class="cover-slide" onclick="goTo(1)" style="cursor:pointer"><img src="'+LOGO_SRC+'" class="logo-img" alt="Kingdom Men Logo" /><div class="cover-week" id="cover-week-label">Week of '+WEEKLY.week_of+'</div><div class="cover-theme" id="cover-theme-label">Theme: '+WEEKLY.theme+'</div><div class="swipe-hint"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg> Swipe or tap to begin</div></div>';
   return div;
 }
 
@@ -707,7 +708,13 @@ function goTo(idx,animate){
   var tabBar=document.getElementById("tab-bar");
   if(tabBar)tabBar.style.display=idx===0?"none":"flex";
 }
-function setupSwipe(){var outer=document.getElementById("slider-outer");var sx=0,sy=0;outer.addEventListener("touchstart",function(e){sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});outer.addEventListener("touchend",function(e){var dx=e.changedTouches[0].clientX-sx;var dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>40){if(dx<0)goTo(currentSlide+1);else goTo(currentSlide-1);}},{passive:true});}
+function setupSwipe(){
+  // Keyboard nav for desktop
+  document.addEventListener("keydown",function(e){
+    if(e.key==="ArrowRight"||e.key==="ArrowDown")goTo(currentSlide+1);
+    else if(e.key==="ArrowLeft"||e.key==="ArrowUp")goTo(currentSlide-1);
+  });
+var outer=document.getElementById("slider-outer");var sx=0,sy=0;outer.addEventListener("touchstart",function(e){sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});outer.addEventListener("touchend",function(e){var dx=e.changedTouches[0].clientX-sx;var dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>40){if(dx<0)goTo(currentSlide+1);else goTo(currentSlide-1);}},{passive:true});}
 
 // PRAY BUTTON (fromSummary=true means called from board)
 async function tapPray(prayerId,fromSummary){
