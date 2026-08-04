@@ -293,7 +293,7 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
   <div id="topbar">
     <div><div id="topbar-title">Kingdom Men&rsquo;s &mdash; Iron Sharpens Iron</div><div id="topbar-week"></div></div>
     <div style="display:flex;align-items:center;gap:8px"><button id="mypage-btn" onclick="goToMyPage()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg> My Page</button><div id="slide-counter"></div></div>
-  <button id="dark-toggle" onclick="toggleDarkMode()" title="Toggle dark mode" aria-label="Toggle dark mode">&#x1F319;</button>
+  
   </div>
   <div id="dots-bar"></div>
   <div id="quicknav-wrap"><select id="quicknav"><option value="">Jump to&hellip;</option></select></div>
@@ -497,13 +497,11 @@ function getDarkPref(){
 }
 function applyDarkMode(dark){
   document.body.classList.toggle('dark-mode',dark);
-  var btn=document.getElementById('dark-toggle');
-  if(btn)btn.textContent=dark?'\u2600':'\u{1F319}';
 }
 function toggleDarkMode(){
   var isDark=document.body.classList.contains('dark-mode');
   var newVal=!isDark;
-  try{localStorage.setItem('km_dark',newVal);}catch(e){}
+  try{localStorage.setItem('km_dark',String(newVal));}catch(e){}
   applyDarkMode(newVal);
 }
 // Apply immediately
@@ -622,7 +620,7 @@ async function init(){
     goTo(0,false);setupSwipe();
     document.getElementById("btn-prev").addEventListener("click",function(){goTo(currentSlide-1);});
     document.getElementById("btn-next").addEventListener("click",function(){goTo(currentSlide+1);});
-    document.getElementById("quicknav").addEventListener("change",function(){if(this.value==="__change__"){showIdentityPicker();}else if(this.value!==""){goTo(parseInt(this.value));}setTimeout(function(){document.getElementById("quicknav").value="";},100);});
+    document.getElementById("quicknav").addEventListener("change",function(){if(this.value==="__change__"){showIdentityPicker();}else if(this.value==="__darkmode__"){toggleDarkMode();buildQuicknav();}else if(this.value!==""){goTo(parseInt(this.value));}setTimeout(function(){document.getElementById("quicknav").value="";},100);});
     var ls=document.getElementById("loading-screen");ls.classList.add("hidden");setTimeout(function(){ls.style.display="none";},500);
     if(!getIdentity()){showIdentityPicker();}else{applyIdentity();}
     setTimeout(updateLastVisit,3000);
@@ -855,7 +853,8 @@ function prayerCardHTML(p){
 // DOTS & NAV
 function buildDots(){var bar=document.getElementById("dots-bar");bar.innerHTML="";for(var i=0;i<totalSlides;i++){var d=document.createElement("div");d.className="dot";(function(idx){d.addEventListener("click",function(){goTo(idx);});})(i);bar.appendChild(d);}}
 function updateDots(){document.querySelectorAll(".dot").forEach(function(d,i){d.classList.toggle("active",i===currentSlide);});}
-function buildQuicknav(){var sel=document.getElementById("quicknav");sel.innerHTML='<option value="">Jump to&hellip;</option><option value="1">&#128203; Prayer Board</option><option value="2">&#128591; Prayer &amp; Theme</option><option value="3">&#10024; God Is Faithful</option>';men.forEach(function(man,i){var opt=document.createElement("option");opt.value=4+i;opt.textContent=man.name;sel.appendChild(opt);});var chg=document.createElement("option");chg.value="__change__";chg.textContent="\u2699 Change who I am";sel.appendChild(chg);}
+function buildQuicknav(){var sel=document.getElementById("quicknav");sel.innerHTML='<option value="">Jump to&hellip;</option><option value="1">&#128203; Prayer Board</option><option value="2">&#128591; Prayer &amp; Theme</option><option value="3">&#10024; God Is Faithful</option>';men.forEach(function(man,i){var opt=document.createElement("option");opt.value=4+i;opt.textContent=man.name;sel.appendChild(opt);});var chg=document.createElement("option");chg.value="__change__";chg.textContent="\u2699 Change who I am";sel.appendChild(chg);
+  var dm=document.createElement("option");dm.value="__darkmode__";dm.textContent=document.body.classList.contains("dark-mode")?"\u2600 Switch to Light Mode":"\u{1F319} Switch to Dark Mode";sel.appendChild(dm);}
 function goTo(idx,animate){
   if(animate===undefined)animate=true;
   if(idx<0||idx>=totalSlides)return;
