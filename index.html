@@ -1198,13 +1198,7 @@ async function saveWeeklyEdit(){
     document.getElementById("cover-week-label").textContent="Week of "+fields.week_of;
     document.getElementById("cover-theme-label").textContent="Theme: "+fields.theme;
     document.getElementById("topbar-week").textContent="Week of "+fields.week_of;
-    document.getElementById("weekly-theme-sub").textContent=fields.theme;
-    document.getElementById("weekly-verse-text").textContent="\u201c"+fields.verse+"\u201d";
-    document.getElementById("weekly-verse-ref").textContent="\u2014 "+fields.reference;
-    document.getElementById("weekly-context-text").textContent=fields.context;
-    document.getElementById("weekly-prayer-block").innerHTML=fields.prayer.split("\n\n").map(function(p){return'<p style="margin-bottom:10px">'+p.replace(/\n/g,"<br>")+'</p>';}).join("");
-    var affEl=document.getElementById("weekly-affirmation-text");
-    if(affEl)affEl.textContent=fields.affirmation;
+    refreshWeeklySlide();
     showSave("&#10003; Weekly content saved");closeWeeklyEdit();
   }catch(e){status.textContent="Error: "+e.message;btn.disabled=false;}
 }
@@ -1227,6 +1221,12 @@ function refreshPersonSlide(manName){
   var slide=document.getElementById("slide-man-"+manName.replace(/\s+/g,"-"));
   if(slide)slide.innerHTML=personSlideHTML(man,i);
 }
+function refreshWeeklySlide(){
+  var track=document.getElementById("slider-track");
+  var slides=track.querySelectorAll(".slide");
+  track.replaceChild(buildWeeklySlide(),slides[2]);
+}
+
 function refreshBoardSlide(){
   var track=document.getElementById("slider-track");
   var slides=track.querySelectorAll(".slide");
