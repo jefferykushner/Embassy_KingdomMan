@@ -259,7 +259,8 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
 .dark-mode #quicknav{background:rgba(201,168,76,.06)}
 .dark-mode .identity-tile{background:rgba(201,168,76,.04);border-color:rgba(201,168,76,.15)}
 /* DARK MODE TOGGLE */
-#dark-toggle{position:fixed;top:11px;right:60px;z-index:15;background:transparent;border:none;font-size:18px;cursor:pointer;padding:4px;-webkit-tap-highlight-color:transparent;opacity:.6;transition:opacity .2s}
+#dark-toggle{position:fixed;top:11px;right:12px;z-index:15;background:rgba(13,27,42,.8);border:1px solid rgba(201,168,76,.2);border-radius:8px;font-size:16px;cursor:pointer;padding:4px 8px;-webkit-tap-highlight-color:transparent;opacity:.7;transition:opacity .2s}
+@media(min-width:600px){#dark-toggle{right:16px;top:12px}}
 #dark-toggle:hover,#dark-toggle:active{opacity:1}
 /* OFFLINE INDICATOR */
 .offline-bar{display:none;position:fixed;top:0;left:0;right:0;background:#8B6914;color:#fff;text-align:center;font-size:12px;font-family:"DM Sans",sans-serif;padding:3px;z-index:25;letter-spacing:.05em}
@@ -367,7 +368,8 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
     <div><label class="form-label">Verse</label><textarea id="we-verse" class="form-textarea" rows="2"></textarea></div>
     <div><label class="form-label">Reference</label><input id="we-reference" class="form-input" type="text" /></div>
     <div><label class="form-label">Context</label><textarea id="we-context" class="form-textarea" rows="3"></textarea></div>
-    <div><label class="form-label">Corporate Prayer</label><textarea id="we-prayer" class="form-textarea" rows="6"></textarea></div>
+    <div><label class="form-label">Prayer for the Week</label><textarea id="we-prayer" class="form-textarea" rows="6"></textarea></div>
+    <div><label class="form-label">Affirmation for the Week</label><textarea id="we-affirmation" class="form-textarea" rows="3" placeholder="A word of encouragement for the brothers this week..."></textarea></div>
     <button class="overlay-save" id="weekly-save-btn" onclick="saveWeeklyEdit()">Save Weekly Content</button>
     <div class="overlay-status" id="weekly-status"></div>
   </div>
@@ -431,7 +433,7 @@ function catBadgeClass(category){
   return"badge badge-cat-"+key;
 }
 
-var WEEKLY={theme:"God Orders Our Steps",verse:"The Lord directs the steps of the godly. He delights in every detail of their lives.",reference:"Psalm 37:23 (NLT)",context:"There are times when the path ahead feels unclear. Decisions pile up. Pressure builds. But we are not walking alone. God is not distant or unaware. He is actively ordering our steps, even when we cannot yet see where the road leads. As Kingdom men, we move forward in faith, trusting that He is guiding, providing, and positioning us exactly where we need to be.",prayer:"Heavenly Father, we thank You that You are a God who leads us. You are not silent, and You are not absent.\n\nLord, we place our plans, our decisions, and our uncertainty into Your hands. Order our steps this week. Guide us in the choices we need to make.\n\nFor the men facing big decisions, we ask for clarity and peace. Help us not to rush ahead or fall behind, but to walk in step with You.\n\nWe thank You, Lord, that You are faithful to guide us. We choose to trust You with every step.\n\nIn Jesus name, Amen.",week_of:"June 22nd, 2026"};
+var WEEKLY={theme:"God Orders Our Steps",verse:"The Lord directs the steps of the godly. He delights in every detail of their lives.",reference:"Psalm 37:23 (NLT)",context:"There are times when the path ahead feels unclear. Decisions pile up. Pressure builds. But we are not walking alone. God is not distant or unaware. He is actively ordering our steps, even when we cannot yet see where the road leads. As Kingdom men, we move forward in faith, trusting that He is guiding, providing, and positioning us exactly where we need to be.",prayer:"Heavenly Father, we thank You that You are a God who leads us. You are not silent, and You are not absent.\n\nLord, we place our plans, our decisions, and our uncertainty into Your hands. Order our steps this week. Guide us in the choices we need to make.\n\nFor the men facing big decisions, we ask for clarity and peace. Help us not to rush ahead or fall behind, but to walk in step with You.\n\nWe thank You, Lord, that You are faithful to guide us. We choose to trust You with every step.\n\nIn Jesus name, Amen.",week_of:"June 22nd, 2026",affirmation:""};
 var men=[],prayers={},weeklyPrayers=[],comments={},birthdayWishes=[];
 var prayerPrays={};
 var lastVisit=null;
@@ -610,7 +612,7 @@ async function init(){
     if(!menData||!menData.length){showErr("No data found.");return;}
     men=menData;
     var wd=weeklyData&&weeklyData[0];
-    if(wd){if(wd.theme)WEEKLY.theme=wd.theme;if(wd.verse)WEEKLY.verse=wd.verse;if(wd.reference)WEEKLY.reference=wd.reference;if(wd.context)WEEKLY.context=wd.context;if(wd.prayer)WEEKLY.prayer=wd.prayer;if(wd.week_of)WEEKLY.week_of=wd.week_of;}
+    if(wd){if(wd.theme)WEEKLY.theme=wd.theme;if(wd.verse)WEEKLY.verse=wd.verse;if(wd.reference)WEEKLY.reference=wd.reference;if(wd.context)WEEKLY.context=wd.context;if(wd.prayer)WEEKLY.prayer=wd.prayer;if(wd.week_of)WEEKLY.week_of=wd.week_of;if(wd.affirmation)WEEKLY.affirmation=wd.affirmation;}
     prayers={};men.forEach(function(m){prayers[m.name]=[];});
     (prayersData||[]).forEach(function(p){if(prayers[p.man_name])prayers[p.man_name].push(p);});
     comments={};
@@ -638,7 +640,7 @@ async function init(){
       lastVisit=getLastVisit();
       men=menData;
       var wd=weeklyData&&weeklyData[0];
-      if(wd){if(wd.theme)WEEKLY.theme=wd.theme;if(wd.verse)WEEKLY.verse=wd.verse;if(wd.reference)WEEKLY.reference=wd.reference;if(wd.context)WEEKLY.context=wd.context;if(wd.prayer)WEEKLY.prayer=wd.prayer;if(wd.week_of)WEEKLY.week_of=wd.week_of;}
+      if(wd){if(wd.theme)WEEKLY.theme=wd.theme;if(wd.verse)WEEKLY.verse=wd.verse;if(wd.reference)WEEKLY.reference=wd.reference;if(wd.context)WEEKLY.context=wd.context;if(wd.prayer)WEEKLY.prayer=wd.prayer;if(wd.week_of)WEEKLY.week_of=wd.week_of;if(wd.affirmation)WEEKLY.affirmation=wd.affirmation;}
       prayers={};men.forEach(function(m){prayers[m.name]=[];});
       prayersData.forEach(function(p){if(prayers[p.man_name])prayers[p.man_name].push(p);});
       comments={};
@@ -743,7 +745,7 @@ function buildWeeklySlide(){
     '</div>'+
     '<div class="verse-block"><p id="weekly-verse-text">&ldquo;'+WEEKLY.verse+'&rdquo;</p><span id="weekly-verse-ref">&mdash; '+WEEKLY.reference+'</span></div>'+
     '<div class="prayer-cat-label">Context</div><div class="weekly-block" style="margin-bottom:18px"><p id="weekly-context-text">'+WEEKLY.context+'</p></div>'+
-    '<div class="prayer-cat-label">Corporate Prayer</div><div class="weekly-block" id="weekly-prayer-block">'+pHTML+'</div></div>';
+    '<div class="prayer-cat-label">Prayer for the Week</div><div class="weekly-block" id="weekly-prayer-block">'+pHTML+'</div>'+(WEEKLY.affirmation?'<div class="prayer-cat-label" style="margin-top:18px">Affirmation for the Week</div><div class="weekly-block" style="border-left:3px solid var(--gold);background:var(--gold-pale)"><p id="weekly-affirmation-text" style="font-family:Playfair Display,serif;font-style:italic;font-size:15px;line-height:1.7;color:#3A3020">'+WEEKLY.affirmation+'</p></div>':'')+'</div>';
   return div;
 }
 
@@ -1183,12 +1185,13 @@ async function saveProfile(){
 }
 
 // WEEKLY EDIT
-function openWeeklyEdit(){document.getElementById("we-week").value=WEEKLY.week_of||"";document.getElementById("we-theme").value=WEEKLY.theme||"";document.getElementById("we-verse").value=WEEKLY.verse||"";document.getElementById("we-reference").value=WEEKLY.reference||"";document.getElementById("we-context").value=WEEKLY.context||"";document.getElementById("we-prayer").value=WEEKLY.prayer||"";document.getElementById("weekly-status").textContent="";document.getElementById("weekly-save-btn").disabled=false;document.getElementById("weekly-edit-overlay").classList.add("open");}
+function openWeeklyEdit(){document.getElementById("we-week").value=WEEKLY.week_of||"";document.getElementById("we-theme").value=WEEKLY.theme||"";document.getElementById("we-verse").value=WEEKLY.verse||"";document.getElementById("we-reference").value=WEEKLY.reference||"";document.getElementById("we-context").value=WEEKLY.context||"";document.getElementById("we-prayer").value=WEEKLY.prayer||"";
+  document.getElementById("we-affirmation").value=WEEKLY.affirmation||"";document.getElementById("weekly-status").textContent="";document.getElementById("weekly-save-btn").disabled=false;document.getElementById("weekly-edit-overlay").classList.add("open");}
 function closeWeeklyEdit(){document.getElementById("weekly-edit-overlay").classList.remove("open");}
 async function saveWeeklyEdit(){
   var btn=document.getElementById("weekly-save-btn"),status=document.getElementById("weekly-status");
   btn.disabled=true;status.textContent="Saving\u2026";
-  var fields={week_of:document.getElementById("we-week").value.trim(),theme:document.getElementById("we-theme").value.trim(),verse:document.getElementById("we-verse").value.trim(),reference:document.getElementById("we-reference").value.trim(),context:document.getElementById("we-context").value.trim(),prayer:document.getElementById("we-prayer").value.trim()};
+  var fields={week_of:document.getElementById("we-week").value.trim(),theme:document.getElementById("we-theme").value.trim(),verse:document.getElementById("we-verse").value.trim(),reference:document.getElementById("we-reference").value.trim(),context:document.getElementById("we-context").value.trim(),prayer:document.getElementById("we-prayer").value.trim(),affirmation:document.getElementById("we-affirmation").value.trim()};
   try{
     await dbFetch("weekly?id=eq.1",{method:"PATCH",prefer:"return=minimal",body:JSON.stringify(fields)});
     Object.assign(WEEKLY,fields);
@@ -1200,6 +1203,8 @@ async function saveWeeklyEdit(){
     document.getElementById("weekly-verse-ref").textContent="\u2014 "+fields.reference;
     document.getElementById("weekly-context-text").textContent=fields.context;
     document.getElementById("weekly-prayer-block").innerHTML=fields.prayer.split("\n\n").map(function(p){return'<p style="margin-bottom:10px">'+p.replace(/\n/g,"<br>")+'</p>';}).join("");
+    var affEl=document.getElementById("weekly-affirmation-text");
+    if(affEl)affEl.textContent=fields.affirmation;
     showSave("&#10003; Weekly content saved");closeWeeklyEdit();
   }catch(e){status.textContent="Error: "+e.message;btn.disabled=false;}
 }
