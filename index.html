@@ -407,10 +407,26 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
 <div class="overlay" id="directory-overlay">
   <div class="overlay-header">
     <div class="overlay-title">Brothers</div>
-    <button class="overlay-close" onclick="closeDirectory()" aria-label="Close directory">Close</button>
+    <div style="display:flex;gap:8px">
+      <button class="overlay-close" onclick="openAddBrother()" aria-label="Add a brother" style="border-color:var(--gold);color:var(--gold)">+ Add</button>
+      <button class="overlay-close" onclick="closeDirectory()" aria-label="Close directory">Close</button>
+    </div>
   </div>
   <div class="overlay-body" style="padding:20px">
     <div class="identity-grid" id="directory-grid" style="grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:12px"></div>
+  </div>
+</div>
+<!-- ADD BROTHER -->
+<div class="overlay" id="addbrother-overlay">
+  <div class="overlay-header"><div class="overlay-title">Add a Brother</div><button class="overlay-close" onclick="closeAddBrother()" aria-label="Close">Cancel</button></div>
+  <div class="overlay-body">
+    <p class="form-hint" style="color:rgba(201,168,76,.55)">This creates a new page for him on the Prayer &amp; Praise board.</p>
+    <div><label class="form-label">Full Name</label><input class="form-input" type="text" id="addbrother-name" placeholder="e.g. James Carter" /></div>
+    <div><label class="form-label">Email Address <span style="color:rgba(201,168,76,.4);font-size:10px;text-transform:none;letter-spacing:0">(optional)</span></label><input class="form-input" type="email" id="addbrother-email" placeholder="his@email.com" /></div>
+    <div><label class="form-label">Phone Number <span style="color:rgba(201,168,76,.4);font-size:10px;text-transform:none;letter-spacing:0">(optional)</span></label><input class="form-input" type="tel" id="addbrother-phone" placeholder="+1 (416) 555-0000" /></div>
+    <div><label class="form-label">Birthday <span style="color:rgba(201,168,76,.4);font-size:10px;text-transform:none;letter-spacing:0">(optional)</span></label><input class="form-input" type="date" id="addbrother-birthday" /></div>
+    <button class="overlay-save" id="addbrother-save-btn" onclick="saveAddBrother()">Add Brother</button>
+    <div class="overlay-status" id="addbrother-status"></div>
   </div>
 </div>
 <!-- CONFIRM -->
@@ -1253,6 +1269,42 @@ function showDirectoryOverlay(){
   document.getElementById("directory-overlay").classList.add("open");
 }
 function closeDirectory(){document.getElementById("directory-overlay").classList.remove("open");}
+
+// ADD BROTHER
+function openAddBrother(){
+  document.getElementById("addbrother-name").value="";
+  document.getElementById("addbrother-email").value="";
+  document.getElementById("addbrother-phone").value="";
+  document.getElementById("addbrother-birthday").value="";
+  document.getElementById("addbrother-status").textContent="";
+  document.getElementById("addbrother-save-btn").disabled=false;
+  document.getElementById("addbrother-overlay").classList.add("open");
+}
+function closeAddBrother(){document.getElementById("addbrother-overlay").classList.remove("open");}
+async function saveAddBrother(){
+  var btn=document.getElementById("addbrother-save-btn"),status=document.getElementById("addbrother-status");
+  var name=document.getElementById("addbrother-name").value.trim();
+  if(!name){status.textContent="Please enter his name.";return;}
+  if(men.some(function(m){return m.name.toLowerCase()===name.toLowerCase();})){
+    status.textContent="A brother with that name is already on the list.";return;
+  }
+  btn.disabled=true;status.textContent="Adding\u2026";
+  var email=document.getElementById("addbrother-email").value.trim();
+  var phone=document.getElementById("addbrother-phone").value.trim();
+  var birthday=document.getElementById("addbrother-birthday").value||null;
+  try{
+    var result=await dbFetch("men",{method:"POST",prefer:"return=representation",body:JSON.stringify({name:name,email:email,phone:phone,birthday:birthday})});
+    var newMan=Array.isArray(result)?result[0]:result;
+    men.push(newMan);
+    men.sort(function(a,b){return a.name.localeCompare(b.name);});
+    prayers[newMan.name]=[];
+    buildSlides();buildDots();buildQuicknav();
+    var newIdx=men.findIndex(function(m){return m.name===newMan.name;});
+    closeAddBrother();closeDirectory();
+    goTo(4+newIdx,false);
+    showSave("&#x1F64F; "+newMan.name+" added to the list");
+  }catch(e){status.textContent="Error: "+e.message;btn.disabled=false;}
+}
 
 init();
 </script>
