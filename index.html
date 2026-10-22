@@ -385,6 +385,46 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
 .dark-mode .comment-text{color:#DDD6C2}
 .dark-mode .comment-date{color:#8A8070}
 /* =================== END DESIGN REFRESH v2 =================== */
+/* ============ UNIFORM CARDS + COMMENTS PANEL (v3) ============ */
+.prayer-card{display:flex;flex-direction:column}
+.prayer-card > .comments-section{display:none!important}
+.prayer-card-text{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:8;line-clamp:8;overflow:hidden;word-break:break-word}
+@media(min-width:760px){
+  .card-grid{grid-auto-rows:1fr;align-items:stretch}
+  .card-grid .prayer-card{min-height:300px;height:100%}
+  .prayer-card-text{-webkit-line-clamp:6;line-clamp:6}
+}
+.prayer-card .card-actions{margin-top:auto}
+.prayer-card-text + .read-more,.prayer-card-text + .prayer-card-dates{margin-top:6px}
+.read-more{display:none;align-self:flex-start;background:none;border:none;padding:2px 0;margin-bottom:4px;font-family:"DM Sans",sans-serif;font-size:13px;font-weight:600;color:#7A5C10;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.read-more:hover{text-decoration:underline}
+.prayer-card.has-more .read-more{display:inline-block}
+.prayer-card .card-actions{padding-top:12px}
+/* Comments panel */
+.cp-overlay{display:none;position:fixed;inset:0;z-index:150;background:rgba(10,10,6,.55);align-items:flex-end;justify-content:center}
+.cp-overlay.open{display:flex;animation:cpFade .2s ease}
+@keyframes cpFade{from{opacity:0}to{opacity:1}}
+@keyframes cpUp{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}
+.cp-sheet{background:var(--cream);width:100%;max-height:92vh;border-radius:18px 18px 0 0;display:flex;flex-direction:column;box-shadow:0 -8px 30px rgba(0,0,0,.25);animation:cpUp .25s ease;border-top:4px solid var(--gold)}
+@media(min-width:760px){.cp-overlay{align-items:center;padding:24px}.cp-sheet{max-width:640px;max-height:86vh;border-radius:18px}}
+.cp-header{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
+.cp-close{margin-left:auto;background:transparent;border:1px solid var(--border);border-radius:10px;padding:7px 12px;font-size:14px;color:#4A402C;cursor:pointer;font-family:"DM Sans",sans-serif}
+.cp-close:hover{background:rgba(201,168,76,.1)}
+.cp-body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 18px max(22px,env(safe-area-inset-bottom))}
+.cp-body .prayer-card-badges{margin-bottom:12px}
+.cp-text{font-size:16px;line-height:1.75;color:#1E1A0E;white-space:pre-line;margin-bottom:14px}
+.cp-actions{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:16px;margin-bottom:14px;border-bottom:1px solid var(--border)}
+.cp-label{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#7A5C10;margin-bottom:10px}
+.cp-body .comments-section{display:block;margin-top:0}
+.cp-empty{font-size:13px;color:var(--muted);margin-bottom:6px}
+.dark-mode .read-more{color:var(--gold-light)}
+.dark-mode .cp-sheet{background:#1A1A14}
+.dark-mode .cp-header{border-bottom-color:rgba(201,168,76,.15)}
+.dark-mode .cp-close{color:#C9BFA6;border-color:rgba(201,168,76,.25)}
+.dark-mode .cp-text{color:#E2DBC6}
+.dark-mode .cp-actions{border-bottom-color:rgba(201,168,76,.15)}
+.dark-mode .cp-label{color:var(--gold)}
+/* ========================== END v3 ========================== */
 </style>
 </head>
 <body>
@@ -527,6 +567,13 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
     <div><label class="form-label">Birthday <span style="color:rgba(201,168,76,.4);font-size:10px;text-transform:none;letter-spacing:0">(optional)</span></label><input class="form-input" type="date" id="addbrother-birthday" /></div>
     <button class="overlay-save" id="addbrother-save-btn" onclick="saveAddBrother()">Add Brother</button>
     <div class="overlay-status" id="addbrother-status"></div>
+  </div>
+</div>
+<!-- COMMENTS PANEL -->
+<div id="cp-overlay" class="cp-overlay" onclick="if(event.target===this)closeComments()">
+  <div class="cp-sheet" role="dialog" aria-modal="true" aria-labelledby="cp-name">
+    <div class="cp-header"><div class="pc-avatar" id="cp-avatar"></div><div class="pc-who"><div class="pc-name" id="cp-name"></div><div class="pc-date" id="cp-date"></div></div><button class="cp-close" onclick="closeComments()" aria-label="Close">&#x2715;</button></div>
+    <div class="cp-body" id="cp-body"></div>
   </div>
 </div>
 <!-- CONFIRM -->
@@ -797,7 +844,7 @@ function weeklyContentHTML(){
   var h='<div class="wk-intro"><div class="wk-eyebrow">Week of '+(WEEKLY.week_of||'')+'</div><h2 class="wk-theme">'+(WEEKLY.theme||'')+'</h2></div>';
   h+='<div class="wk-grid">'+
     '<section class="wk-card wk-scripture"><div class="wk-label">&#128214; Scripture</div><p class="wk-verse">&ldquo;'+(WEEKLY.verse||'')+'&rdquo;</p><div class="wk-ref">'+(WEEKLY.reference||'')+'</div></section>'+
-    '<section class="wk-card wk-context"><div class="wk-label">Context</div><p>'+(WEEKLY.context||'')+'</p></section>'+
+    '<section class="wk-card wk-context"><p>'+(WEEKLY.context||'')+'</p></section>'+
     '</div>';
   h+='<section class="wk-prayer"><div class="wk-label">&#128591; Prayer for the Week</div><div class="wk-prayer-text">'+pHTML+'</div></section>';
   if(WEEKLY.affirmation)h+='<section class="wk-affirm"><div class="wk-label">Affirmation for the Week</div><p>'+WEEKLY.affirmation+'</p></section>';
@@ -860,9 +907,10 @@ function summaryCardHTML(p,isPinned){
     '<div class="pc-head"><div class="pc-avatar">'+mInitials+'</div><div class="pc-who"><div class="pc-name">'+p.man_name+'</div><div class="pc-date">Posted '+formatDate(p.post_date)+'</div></div>'+newBadge+'</div>'+
     '<div class="prayer-card-badges">'+pinBadge+catBadge+'</div>'+
     '<div class="prayer-card-text">'+p.prayer_text+'</div>'+
+    '<button class="read-more" onclick="openComments(this)">Read more &rarr;</button>'+
     '<div class="card-actions">'+
     '<button class="'+prayBtnCls+'" id="spraybtn-'+p.id+'" onclick="tapPray('+p.id+',true)">'+prayLabel+'</button>'+
-    '<button class="reply-btn" onclick="toggleSection(\'scomm-'+p.id+'\')">&#x1F4AC;&nbsp;'+(commentCount>0?commentCount+' comment'+(commentCount!==1?'s':''):'Reply')+'</button>'+
+    '<button class="reply-btn" onclick="openComments(this)">&#x1F4AC;&nbsp;'+(commentCount>0?commentCount+' comment'+(commentCount!==1?'s':''):'Reply')+'</button>'+
     '</div>'+
     '<div class="comments-section" id="scomm-'+p.id+'">'+commHtml+'</div>'+
     '</div>';
@@ -971,10 +1019,11 @@ function prayerCardHTML(p){
   return '<div class="'+cls+'" id="pcard-'+p.id+'">'+
     '<div class="prayer-card-top"><div class="prayer-card-badges">'+newBadge+pinBadge+catBadge+'</div><div class="card-top-actions">'+editBtn+'<button class="delete-btn" onclick="askDelete('+p.id+',\''+sn+'\',\''+st+'\')" title="Delete">&#x2715;</button></div></div>'+
     '<div class="prayer-card-text">'+p.prayer_text+'</div>'+
+    '<button class="read-more" onclick="openComments(this)">Read more &rarr;</button>'+
     '<div class="prayer-card-dates"><span class="date-chip">Posted '+formatDate(p.post_date)+'</span>'+pdc+'</div>'+
     '<div class="card-actions">'+
     '<button class="'+prayBtnCls+'" id="praybtn-'+p.id+'" onclick="tapPray('+p.id+',false)">'+prayLabel+'</button>'+
-    '<button class="reply-btn" onclick="toggleSection(\'comm-'+p.id+'\')">&#x1F4AC;&nbsp;'+(commentCount>0?commentCount+' comment'+(commentCount!==1?'s':''):'Reply')+'</button>'+
+    '<button class="reply-btn" onclick="openComments(this)">&#x1F4AC;&nbsp;'+(commentCount>0?commentCount+' comment'+(commentCount!==1?'s':''):'Reply')+'</button>'+
     ansBtn+
     '</div>'+
     '<div class="comments-section" id="comm-'+p.id+'">'+commHtml+'</div>'+
@@ -1020,6 +1069,8 @@ function goTo(idx,animate){
 function setupSwipe(){
   // Keyboard nav for desktop
   document.addEventListener("keydown",function(e){
+    if(cpState){if(e.key==="Escape")closeComments();return;}
+    var tg=e.target&&e.target.tagName;if(tg==="INPUT"||tg==="TEXTAREA"||tg==="SELECT")return;
     if(e.key==="ArrowRight"||e.key==="ArrowDown")goTo(currentSlide+1);
     else if(e.key==="ArrowLeft"||e.key==="ArrowUp")goTo(currentSlide-1);
   });
@@ -1044,6 +1095,8 @@ async function tapPray(prayerId,fromSummary){
   var b2=document.getElementById("spraybtn-"+prayerId);
   if(b1){b1.innerHTML=label;b1.classList.add("tapped");}
   if(b2){b2.innerHTML=label;b2.classList.add("tapped");}
+  var b3=document.getElementById("ppraybtn-"+prayerId);
+  if(b3){b3.innerHTML=label;b3.classList.add("tapped");}
   try{
     await Promise.all([
       dbFetch("prayers?id=eq."+prayerId,{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({prayer_count:newCount})}),
@@ -1122,12 +1175,12 @@ function addCommentToSection(sectionId,nc){
 function updateReplyCount(prayerId){
   var cnt=comments[prayerId]?comments[prayerId].length:0;
   var label=cnt+" comment"+(cnt!==1?"s":"");
-  ["comm-","scomm-"].forEach(function(prefix){
-    var sec=document.getElementById(prefix+prayerId);if(!sec)return;
-    var card=sec.parentElement;if(!card)return;
-    var rb=card.querySelector(".reply-btn");
+  ["pcard-","scard-"].forEach(function(prefix){
+    var card=document.getElementById(prefix+prayerId);if(!card)return;
+    var rb=card.querySelector(".card-actions .reply-btn");
     if(rb)rb.innerHTML="&#x1F4AC;&nbsp;"+label;
   });
+  var empty=document.getElementById("cp-empty");if(empty&&cnt>0)empty.remove();
 }
 
 // ANSWERED
@@ -1419,6 +1472,66 @@ async function saveAddBrother(){
 }
 
 init();
+
+// ===== COMMENTS PANEL & CARD OVERFLOW (v3) =====
+var cpState=null;
+function findPrayer(id){
+  var found=null;
+  Object.keys(prayers).forEach(function(k){(prayers[k]||[]).forEach(function(x){if(x.id===id)found=x;});});
+  if(!found)weeklyPrayers.forEach(function(x){if(x.id===id)found=x;});
+  return found;
+}
+function openComments(el){
+  var card=el.closest(".prayer-card");if(!card)return;
+  var id=parseInt(card.id.replace(/^[sp]card-/,""),10);
+  var p=findPrayer(id);if(!p)return;
+  if(cpState)closeComments();
+  var sec=card.querySelector(".comments-section");
+  var initials=(p.man_name||"").split(" ").map(function(w){return w[0]||"";}).join("").slice(0,2).toUpperCase();
+  document.getElementById("cp-avatar").textContent=initials;
+  document.getElementById("cp-name").textContent=p.man_name||"";
+  document.getElementById("cp-date").textContent="Posted "+formatDate(p.post_date);
+  var badges=card.querySelector(".prayer-card-badges");
+  var tapped=hasPrayed(p.id);
+  var cnt=(comments[p.id]||[]).length;
+  var body=document.getElementById("cp-body");
+  body.innerHTML=(badges?'<div class="prayer-card-badges">'+badges.innerHTML+'</div>':'')+
+    '<div class="cp-text">'+p.prayer_text+'</div>'+
+    '<div class="cp-actions"><button class="pray-btn'+(tapped?' tapped':'')+'" id="ppraybtn-'+p.id+'" onclick="tapPray('+p.id+',false)">'+prayBtnLabel(p.id,p.prayer_count||0)+'</button></div>'+
+    '<div class="cp-label">&#x1F4AC; Encouragement</div>'+
+    (cnt===0?'<div class="cp-empty" id="cp-empty">No comments yet &mdash; be the first to encourage him.</div>':'');
+  if(sec){sec.classList.add("open");body.appendChild(sec);}
+  cpState={cardId:card.id,sec:sec};
+  document.getElementById("cp-overlay").classList.add("open");
+  body.scrollTop=0;
+}
+function closeComments(){
+  if(!cpState)return;
+  var sec=cpState.sec,card=document.getElementById(cpState.cardId);
+  if(sec){
+    sec.classList.remove("open");
+    if(card&&!card.querySelector(".comments-section"))card.appendChild(sec);
+    else if(sec.parentNode)sec.parentNode.removeChild(sec);
+  }
+  document.getElementById("cp-body").innerHTML="";
+  document.getElementById("cp-overlay").classList.remove("open");
+  cpState=null;
+}
+function markOverflow(){
+  document.querySelectorAll(".prayer-card .prayer-card-text").forEach(function(t){
+    if(!t.clientHeight)return;
+    var card=t.closest(".prayer-card");
+    card.classList.toggle("has-more",t.scrollHeight>t.clientHeight+2);
+  });
+}
+var _ovT=null;
+function scheduleOverflow(){clearTimeout(_ovT);_ovT=setTimeout(markOverflow,60);}
+(function(){
+  var track=document.getElementById("slider-track");
+  if(track&&window.MutationObserver)new MutationObserver(scheduleOverflow).observe(track,{childList:true,subtree:true,attributes:true,attributeFilter:["class"]});
+  window.addEventListener("resize",scheduleOverflow);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(scheduleOverflow);
+})();
 </script>
 </body>
 </html>
