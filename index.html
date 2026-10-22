@@ -287,6 +287,104 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
 .save-indicator{transition:opacity .3s,transform .3s;transform:translateX(-50%) translateY(-8px)}
 .save-indicator.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* ===================== DESIGN REFRESH v2 ===================== */
+/* Landing / hero */
+.landing-slide{background:var(--cream)}
+.hero{position:relative;overflow:hidden;background:#0E0C05;display:flex;justify-content:center}
+.hero-bg{position:absolute;top:-40px;left:-40px;width:calc(100% + 80px);height:calc(100% + 80px);object-fit:cover;filter:blur(28px) brightness(.55) saturate(1.1)}
+.hero-img{position:relative;display:block;width:min(100%,1000px,calc(60vh * 1.5));height:auto;aspect-ratio:3/2}
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:36px;background:linear-gradient(to bottom,transparent,var(--cream));pointer-events:none}
+@media(min-width:760px){.hero::after{height:60px}}
+.landing-body{max-width:980px;margin:0 auto;padding:6px 18px 56px}
+@media(min-width:600px){.landing-body{padding-bottom:110px}}
+/* Weekly content (shared by landing + Weekly tab) */
+.wk-intro{text-align:center;margin:16px 0 22px}
+.wk-eyebrow{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#7A5C10;border:1px solid rgba(201,168,76,.5);border-radius:20px;padding:5px 14px;margin-bottom:10px}
+.wk-theme{font-family:"Playfair Display",serif;font-size:26px;line-height:1.25;color:var(--navy);font-weight:700}
+.wk-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:18px}
+@media(min-width:760px){.wk-grid{grid-template-columns:1fr 1.35fr}.wk-theme{font-size:34px}}
+.wk-card{border-radius:14px;padding:18px 20px;border:1px solid var(--border);background:#fff;box-shadow:0 1px 3px rgba(14,12,5,.06)}
+.wk-label{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#7A5C10;margin-bottom:10px}
+.wk-scripture{background:var(--gold-pale);border-left:4px solid var(--gold)}
+.wk-verse{font-family:"Playfair Display",serif;font-style:italic;font-size:18px;line-height:1.6;color:#1E1A0E}
+.wk-ref{margin-top:12px;font-size:13px;font-weight:600;color:#7A5C10}
+.wk-ref::before{content:"\2014\00a0"}
+.wk-context{border-left:4px solid var(--navy)}
+.wk-context .wk-label{color:var(--navy)}
+.wk-context p{font-size:15px;line-height:1.75;color:#2A2415}
+.wk-prayer{background:var(--navy);border-radius:16px;padding:24px 22px;border-top:4px solid var(--gold);box-shadow:0 6px 20px rgba(13,27,42,.18);margin-bottom:18px}
+.wk-prayer .wk-label{color:var(--gold);text-align:center;margin-bottom:14px}
+.wk-prayer-text{max-width:68ch;margin:0 auto}
+.wk-prayer-text p{font-family:"Playfair Display",serif;font-size:17px;line-height:1.85;color:#F3EEDF;margin-bottom:12px}
+.wk-prayer-text p:last-child{margin-bottom:0}
+@media(min-width:760px){.wk-prayer{padding:32px 44px}.wk-prayer-text p{font-size:18px}}
+.wk-affirm{text-align:center;padding:20px 22px;border-radius:14px;background:linear-gradient(135deg,#FDF6E3,#F6E7B8);border:1px solid rgba(201,168,76,.5);margin-bottom:26px}
+.wk-affirm .wk-label{margin-bottom:8px}
+.wk-affirm p{font-family:"Playfair Display",serif;font-style:italic;font-size:17px;line-height:1.7;color:#3A2E0A;max-width:60ch;margin:0 auto}
+.wk-page .wk-intro{margin-top:4px}
+.enter-btn{display:flex;align-items:center;justify-content:center;gap:10px;margin:6px auto 0;padding:15px 30px;background:var(--gold);color:#0E0C05;border:none;border-radius:40px;font-family:"Playfair Display",serif;font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(201,168,76,.35);-webkit-tap-highlight-color:transparent;transition:transform .15s,filter .15s}
+.enter-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.5}
+.enter-btn:hover{filter:brightness(1.06)}
+.enter-btn:active{transform:scale(.98)}
+.enter-btn:focus-visible{outline:2px solid var(--navy);outline-offset:3px}
+.enter-hint{text-align:center;font-size:12px;color:var(--muted);margin-top:10px}
+#topbar-title{cursor:pointer}
+/* Wider, centred pages on desktop */
+@media(min-width:900px){.slide-inner{max-width:1200px;margin:0 auto;padding:28px 32px 110px}}
+/* Prayer card grid */
+.card-grid{display:grid;grid-template-columns:1fr;gap:14px;align-items:start;margin-bottom:18px}
+@media(min-width:760px){.card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:1180px){.card-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.card-grid .prayer-card{margin-bottom:0}
+.answered-list .card-grid{margin-top:4px}
+.prayer-card{border-left-width:4px;box-shadow:0 1px 3px rgba(14,12,5,.06),0 4px 14px rgba(14,12,5,.04)}
+.prayer-card.cat-personal{border-left-color:#6B7FD7}.prayer-card.cat-family{border-left-color:#4A9BD9}.prayer-card.cat-marriage{border-left-color:#D47B93}.prayer-card.cat-health{border-left-color:#D4694A}.prayer-card.cat-work{border-left-color:#8B7355}.prayer-card.cat-finances{border-left-color:#5B9A5B}.prayer-card.cat-friends{border-left-color:#C98B4A}.prayer-card.cat-ministry{border-left-color:#7B68AE}.prayer-card.cat-home{border-left-color:#6B9B8A}.prayer-card.cat-other{border-left-color:#8B8B8B}
+.prayer-card.is-praise{border-left-color:#4CAF50}.prayer-card.is-pinned{border-left-color:var(--gold)}.prayer-card.is-answered{border-left-color:#4CAF50}
+.pc-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.pc-avatar{width:36px;height:36px;border-radius:50%;background:var(--navy);color:var(--gold);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:"Playfair Display",serif;font-weight:700;font-size:14px;flex-shrink:0}
+.pc-who{flex:1;min-width:0}
+.pc-name{font-family:"Playfair Display",serif;font-size:17px;font-weight:700;color:#14110A;line-height:1.2}
+.pc-date{font-size:12px;color:#6B604C;margin-top:2px}
+.pc-head + .prayer-card-badges{margin-bottom:8px}
+.prayer-card-text{font-size:15px;color:#1E1A0E}
+/* Readability fixes */
+.prayer-cat-label{color:#7A5C10;font-size:11px;font-weight:600}
+.pray-btn{color:#4A402C;border-color:rgba(201,168,76,.5);padding:6px 12px;font-size:12.5px}
+.pray-btn.tapped{background:rgba(201,168,76,.18);color:#6B4F0A}
+.pray-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--navy);color:var(--gold-light);font-size:11px;font-weight:700}
+.reply-btn{color:#4A402C;font-size:12.5px;border:1px solid rgba(122,110,90,.25);padding:6px 12px}
+.comment-item{background:#FAF6EA;border-left:3px solid rgba(201,168,76,.6)}
+.comment-author{color:#7A5C10;font-size:12px;font-weight:600}
+.comment-text{font-size:14px;color:#2A2415;line-height:1.6}
+.comment-date{color:#7A6E5A}
+/* Dark mode for v2 */
+.dark-mode .wk-theme{color:var(--gold-light)}
+.dark-mode .wk-eyebrow{color:var(--gold);border-color:rgba(201,168,76,.35)}
+.dark-mode .wk-label{color:var(--gold)}
+.dark-mode .wk-card{background:#1F1E18;border-color:rgba(201,168,76,.15);box-shadow:none}
+.dark-mode .wk-scripture{background:rgba(201,168,76,.08);border-left-color:var(--gold)}
+.dark-mode .wk-verse{color:#EDE6D0}
+.dark-mode .wk-ref{color:var(--gold-light)}
+.dark-mode .wk-context{border-left-color:#4A6F99}
+.dark-mode .wk-context .wk-label{color:#8FB3DB}
+.dark-mode .wk-context p{color:#DDD6C2}
+.dark-mode .wk-prayer{border:1px solid rgba(201,168,76,.25);border-top:4px solid var(--gold);box-shadow:none}
+.dark-mode .wk-affirm{background:rgba(201,168,76,.1);border-color:rgba(201,168,76,.3)}
+.dark-mode .wk-affirm p{color:var(--gold-light)}
+.dark-mode .enter-hint{color:#8A8070}
+.dark-mode .prayer-card{box-shadow:none}
+.dark-mode .prayer-card-text{color:#E2DBC6}
+.dark-mode .pc-name{color:#F0E6C8}
+.dark-mode .pc-date{color:#9A907C}
+.dark-mode .pray-btn{color:#C9BFA6;border-color:rgba(201,168,76,.3)}
+.dark-mode .pray-btn.tapped{color:var(--gold-light);background:rgba(201,168,76,.14)}
+.dark-mode .reply-btn{color:#C9BFA6;border-color:rgba(201,168,76,.2)}
+.dark-mode .pray-count{background:var(--gold);color:#0E0C05}
+.dark-mode .comment-item{background:rgba(201,168,76,.07);border-left-color:rgba(201,168,76,.4)}
+.dark-mode .comment-author{color:var(--gold-light)}
+.dark-mode .comment-text{color:#DDD6C2}
+.dark-mode .comment-date{color:#8A8070}
+/* =================== END DESIGN REFRESH v2 =================== */
 </style>
 </head>
 <body>
@@ -297,7 +395,7 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
 </div>
 <div id="app">
   <div id="topbar">
-    <div><div id="topbar-title">Kingdom Men&rsquo;s &mdash; Iron Sharpens Iron</div><div id="topbar-week"></div></div>
+    <div><div id="topbar-title" onclick="goTo(0)" title="Home">Kingdom Men&rsquo;s &mdash; Iron Sharpens Iron</div><div id="topbar-week"></div></div>
     <div style="display:flex;align-items:center;gap:8px"><button id="mypage-btn" onclick="goToMyPage()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg> My Page</button><div id="slide-counter"></div></div>
   
   </div>
@@ -694,17 +792,32 @@ function buildSlides(){
   document.getElementById("topbar-week").textContent="Week of "+WEEKLY.week_of;
 }
 
+function weeklyContentHTML(){
+  var pHTML=(WEEKLY.prayer||"").split("\n\n").map(function(p){return'<p>'+p.replace(/\n/g,"<br>")+'</p>';}).join("");
+  var h='<div class="wk-intro"><div class="wk-eyebrow">Week of '+(WEEKLY.week_of||'')+'</div><h2 class="wk-theme">'+(WEEKLY.theme||'')+'</h2></div>';
+  h+='<div class="wk-grid">'+
+    '<section class="wk-card wk-scripture"><div class="wk-label">&#128214; Scripture</div><p class="wk-verse">&ldquo;'+(WEEKLY.verse||'')+'&rdquo;</p><div class="wk-ref">'+(WEEKLY.reference||'')+'</div></section>'+
+    '<section class="wk-card wk-context"><div class="wk-label">Context</div><p>'+(WEEKLY.context||'')+'</p></section>'+
+    '</div>';
+  h+='<section class="wk-prayer"><div class="wk-label">&#128591; Prayer for the Week</div><div class="wk-prayer-text">'+pHTML+'</div></section>';
+  if(WEEKLY.affirmation)h+='<section class="wk-affirm"><div class="wk-label">Affirmation for the Week</div><p>'+WEEKLY.affirmation+'</p></section>';
+  return h;
+}
+
 function buildCoverSlide(){
-  var div=document.createElement("div");div.className="slide";
-  div.innerHTML='<div class="cover-slide" onclick="goTo(1)" style="cursor:pointer"><img src="'+LOGO_SRC+'" class="logo-img" alt="Kingdom Men Logo" /><div class="cover-week" id="cover-week-label">Week of '+WEEKLY.week_of+'</div><div class="cover-theme" id="cover-theme-label">Theme: '+WEEKLY.theme+'</div><div class="swipe-hint"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg> Swipe or tap to begin</div></div>';
+  var div=document.createElement("div");div.className="slide landing-slide";
+  div.innerHTML='<div class="landing">'+
+    '<div class="hero"><img src="'+LOGO_SRC+'" class="hero-bg" alt="" aria-hidden="true" /><img src="'+LOGO_SRC+'" class="hero-img" alt="Kingdom Men &mdash; Be strong. Be faithful. Be a Kingdom man." /></div>'+
+    '<div class="landing-body">'+weeklyContentHTML()+
+    '<button class="enter-btn" onclick="goTo(1)">Enter the Prayer Board <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>'+
+    '<div class="enter-hint">See what your brothers are praying for this week</div>'+
+    '</div></div>';
   return div;
 }
 
 // Auto-advance cover after identity is set
 function autoCoverAdvance(){
-  if(currentSlide===0&&getIdentity()){
-    setTimeout(function(){if(currentSlide===0)goTo(1);},2500);
-  }
+  // Landing page now holds the weekly content; visitors enter the board themselves.
 }
 
 function buildBoardSlide(){
@@ -712,24 +825,24 @@ function buildBoardSlide(){
   var active=weeklyPrayers.filter(function(p){return!p.answered;});
   var pinned=active.filter(function(p){return p.prayer_date&&!isDatePast(p.prayer_date);}).sort(function(a,b){return new Date(a.prayer_date)-new Date(b.prayer_date);});
   var pinnedIds=pinned.map(function(p){return p.id;});
-  var regular=active.filter(function(p){return pinnedIds.indexOf(p.id)===-1;}).sort(function(a,b){return new Date(b.created_at)-new Date(a.created_at);}).slice(0,20);
+  var regular=active.filter(function(p){return pinnedIds.indexOf(p.id)===-1;}).sort(function(a,b){return new Date(b.created_at)-new Date(a.created_at);});
   var cards="";
   var bdays=getBirthdayMen();
   if(bdays.length){cards+='<div class="prayer-cat-label" style="margin-bottom:10px">&#127874; Birthdays</div>';bdays.forEach(function(b){cards+=birthdayCardHTML(b);});cards+='<div style="height:8px"></div>';}
-  if(pinned.length){cards+='<div class="prayer-cat-label" style="margin-bottom:10px">&#128204; Date-Specific Prayers</div>';pinned.forEach(function(p){cards+=summaryCardHTML(p,true);});}
-  if(regular.length){cards+='<div class="prayer-cat-label" style="margin-top:'+(pinned.length?'18px':'0')+';margin-bottom:10px">All Prayers</div>';regular.forEach(function(p){cards+=summaryCardHTML(p,false);});}
+  if(pinned.length){cards+='<div class="prayer-cat-label" style="margin-bottom:10px">&#128204; Date-Specific Prayers</div>';cards+='<div class="card-grid">';pinned.forEach(function(p){cards+=summaryCardHTML(p,true);});cards+='</div>';}
+  if(regular.length){cards+='<div class="prayer-cat-label" style="margin-top:'+(pinned.length?'18px':'0')+';margin-bottom:10px">All Prayers</div>';cards+='<div class="card-grid">';regular.forEach(function(p){cards+=summaryCardHTML(p,false);});cards+='</div>';}
   if(!pinned.length&&!regular.length&&!bdays.length)cards='<div class="empty-state"><div class="empty-state-icon">&#128591;</div>No active prayers yet.</div>';
-  div.innerHTML='<div class="slide-inner"><div class="person-header"><div><div class="person-name" style="font-size:18px">Prayer Board</div><div class="person-name-sub">Most recent &mdash; pinned at top</div></div></div><div class="search-wrap"><span class="search-icon">&#128269;</span><input class="search-input" id="board-search" type="text" aria-label="Search prayers" placeholder="Search prayers, names, categories..." oninput="filterBoard(this.value)" /><button class="search-clear" id="search-clear-btn" onclick="clearSearch()">&#x2715;</button></div><div id="board-cards">'+cards+'</div></div>';
+  div.innerHTML='<div class="slide-inner"><div class="person-header"><div><div class="person-name" style="font-size:18px">Prayer Board</div><div class="person-name-sub">Newest first &mdash; date-specific prayers pinned at top</div></div></div><div class="search-wrap"><span class="search-icon">&#128269;</span><input class="search-input" id="board-search" type="text" aria-label="Search prayers" placeholder="Search prayers, names, categories..." oninput="filterBoard(this.value)" /><button class="search-clear" id="search-clear-btn" onclick="clearSearch()">&#x2715;</button></div><div id="board-cards">'+cards+'</div></div>';
   return div;
 }
 
 // ---- END RESTORED CORE FUNCTIONS ----
 function summaryCardHTML(p,isPinned){
   var isPraise=p.category==="Praise Report";
-  var cls=isPraise?"prayer-card is-praise":isPinned?"prayer-card is-pinned":"prayer-card";
+  var cls=(isPraise?"prayer-card is-praise":isPinned?"prayer-card is-pinned":"prayer-card")+" cat-"+(CAT_COLORS[p.category]||"other");
   var catBadge=isPraise?'<span class="badge badge-praise">&#128588; Praise</span>':'<span class="'+catBadgeClass(p.category)+'">'+p.category+'</span>';
   var pinBadge=isPinned?'<span class="badge badge-pinned">&#128204; '+formatDate(p.prayer_date)+'</span>':"";
-  var manBadge='<span class="badge badge-man">'+p.man_name+'</span>';
+  var mInitials=(p.man_name||"").split(" ").map(function(w){return w[0]||"";}).join("").slice(0,2).toUpperCase();
   var prayCount=p.prayer_count||0;
   var tapped=hasPrayed(p.id);
   var prayBtnCls="pray-btn"+(tapped?" tapped":"");
@@ -744,9 +857,9 @@ function summaryCardHTML(p,isPinned){
   var nameOpts=men.map(function(m){var sel=(myId2===m.name)?' selected':'';return'<option value="'+m.name+'"'+sel+'>'+m.name+'</option>';}).join("");
   commHtml+='<div class="add-comment-form"><textarea class="comment-input" id="scin-'+p.id+'" placeholder="Write an encouragement..." rows="2"></textarea><div class="add-comment-row"><select class="comment-who" id="swho-'+p.id+'">'+nameOpts+'</select><button class="comment-submit" onclick="submitSummaryComment('+p.id+')">Send</button></div></div>';
   return '<div class="'+cls+'" id="scard-'+p.id+'">'+
-    '<div class="prayer-card-top"><div class="prayer-card-badges">'+newBadge+pinBadge+catBadge+manBadge+'</div></div>'+
+    '<div class="pc-head"><div class="pc-avatar">'+mInitials+'</div><div class="pc-who"><div class="pc-name">'+p.man_name+'</div><div class="pc-date">Posted '+formatDate(p.post_date)+'</div></div>'+newBadge+'</div>'+
+    '<div class="prayer-card-badges">'+pinBadge+catBadge+'</div>'+
     '<div class="prayer-card-text">'+p.prayer_text+'</div>'+
-    '<div class="prayer-card-dates"><span class="date-chip">Posted '+formatDate(p.post_date)+'</span></div>'+
     '<div class="card-actions">'+
     '<button class="'+prayBtnCls+'" id="spraybtn-'+p.id+'" onclick="tapPray('+p.id+',true)">'+prayLabel+'</button>'+
     '<button class="reply-btn" onclick="toggleSection(\'scomm-'+p.id+'\')">&#x1F4AC;&nbsp;'+(commentCount>0?commentCount+' comment'+(commentCount!==1?'s':''):'Reply')+'</button>'+
@@ -757,15 +870,11 @@ function summaryCardHTML(p,isPinned){
 
 function buildWeeklySlide(){
   var div=document.createElement("div");div.className="slide";
-  var pHTML=WEEKLY.prayer.split("\n\n").map(function(p){return'<p style="margin-bottom:10px">'+p.replace(/\n/g,"<br>")+'</p>';}).join("");
-  div.innerHTML='<div class="slide-inner" style="background:var(--cream)">'+
-    '<div class="person-header" style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)">'+
-    '<div><div class="person-name" style="font-size:18px">Prayer &amp; Theme</div><div class="person-name-sub" id="weekly-theme-sub">'+WEEKLY.theme+'</div></div>'+
+  div.innerHTML='<div class="slide-inner wk-page" style="background:var(--cream)">'+
+    '<div class="person-header" style="margin-bottom:8px;padding-bottom:14px;border-bottom:1px solid var(--border)">'+
+    '<div><div class="person-name" style="font-size:18px">Prayer &amp; Theme</div><div class="person-name-sub">This week&rsquo;s word for the brothers</div></div>'+
     '<div class="header-btns"><button class="icon-btn" onclick="openWeeklyEdit()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button></div>'+
-    '</div>'+
-    '<div class="verse-block"><p id="weekly-verse-text">&ldquo;'+WEEKLY.verse+'&rdquo;</p><span id="weekly-verse-ref">&mdash; '+WEEKLY.reference+'</span></div>'+
-    '<div class="prayer-cat-label">Context</div><div class="weekly-block" style="margin-bottom:18px"><p id="weekly-context-text">'+WEEKLY.context+'</p></div>'+
-    '<div class="prayer-cat-label">Prayer for the Week</div><div class="weekly-block" id="weekly-prayer-block">'+pHTML+'</div>'+(WEEKLY.affirmation?'<div class="prayer-cat-label" style="margin-top:18px">Affirmation for the Week</div><div class="weekly-block" style="border-left:3px solid var(--gold);background:var(--gold-pale)"><p id="weekly-affirmation-text" style="font-family:Playfair Display,serif;font-style:italic;font-size:15px;line-height:1.7;color:#3A3020">'+WEEKLY.affirmation+'</p></div>':'')+'</div>';
+    '</div>'+weeklyContentHTML()+'</div>';
   return div;
 }
 
@@ -814,12 +923,12 @@ function personSlideHTML(man,i){
   if(!active.length&&!answered.length){
     cards='<div class="empty-state"><div class="empty-state-icon">&#128591;</div>No prayer requests yet.<br>Tap &ldquo;Add&rdquo; to get started.</div>';
   } else {
-    if(pinned.length){cards+='<div class="prayer-cat-label" style="margin-bottom:8px">&#128204; Date-Specific</div>';pinned.forEach(function(p){cards+=prayerCardHTML(p);});}
-    if(rest.length){if(pinned.length)cards+='<div class="prayer-cat-label" style="margin-top:16px;margin-bottom:8px">Prayer Requests</div>';rest.forEach(function(p){cards+=prayerCardHTML(p);});}
+    if(pinned.length){cards+='<div class="prayer-cat-label" style="margin-bottom:8px">&#128204; Date-Specific</div>';cards+='<div class="card-grid">';pinned.forEach(function(p){cards+=prayerCardHTML(p);});cards+='</div>';}
+    if(rest.length){if(pinned.length)cards+='<div class="prayer-cat-label" style="margin-top:16px;margin-bottom:8px">Prayer Requests</div>';cards+='<div class="card-grid">';rest.forEach(function(p){cards+=prayerCardHTML(p);});cards+='</div>';}
     if(answered.length){
       cards+='<button class="answered-section-toggle" onclick="toggleSection(\'ans-'+i+'\')"><span id="ans-arrow-'+i+'">&#9660;</span> '+answered.length+' Answered Prayer'+(answered.length!==1?'s':'')+'</button>';
       cards+='<div class="answered-list" id="ans-'+i+'">';
-      answered.forEach(function(p){cards+=prayerCardHTML(p);});
+      cards+='<div class="card-grid">';answered.forEach(function(p){cards+=prayerCardHTML(p);});cards+='</div>';
       cards+='</div>';
     }
   }
@@ -839,7 +948,7 @@ function prayerCardHTML(p){
   var isAnswered=p.answered===true;
   var isPraise=p.category==="Praise Report";
   var isPinned=!isAnswered&&p.prayer_date&&!isDatePast(p.prayer_date);
-  var cls=isAnswered?"prayer-card is-answered":isPraise?"prayer-card is-praise":isPinned?"prayer-card is-pinned":"prayer-card";
+  var cls=(isAnswered?"prayer-card is-answered":isPraise?"prayer-card is-praise":isPinned?"prayer-card is-pinned":"prayer-card")+" cat-"+(CAT_COLORS[p.category]||"other");
   var catBadge=isAnswered?'<span class="badge badge-answered">&#10003; Answered</span>':isPraise?'<span class="badge badge-praise">&#128588; Praise</span>':'<span class="'+catBadgeClass(p.category)+'">'+p.category+'</span>';
   var pinBadge=isPinned?'<span class="badge badge-pinned">&#128204; '+formatDate(p.prayer_date)+'</span>':"";
   var st=(p.prayer_text||"").substring(0,40).replace(/'/g,"\\'").replace(/\n/g," ");
@@ -875,7 +984,7 @@ function prayerCardHTML(p){
 // DOTS & NAV
 function buildDots(){var bar=document.getElementById("dots-bar");bar.innerHTML="";for(var i=0;i<totalSlides;i++){var d=document.createElement("div");d.className="dot";(function(idx){d.addEventListener("click",function(){goTo(idx);});})(i);bar.appendChild(d);}}
 function updateDots(){document.querySelectorAll(".dot").forEach(function(d,i){d.classList.toggle("active",i===currentSlide);});}
-function buildQuicknav(){var sel=document.getElementById("quicknav");sel.innerHTML='<option value="">Jump to&hellip;</option><option value="1">&#128203; Prayer Board</option><option value="2">&#128591; Prayer &amp; Theme</option><option value="3">&#10024; God Is Faithful</option>';men.forEach(function(man,i){var opt=document.createElement("option");opt.value=4+i;opt.textContent=man.name;sel.appendChild(opt);});var chg=document.createElement("option");chg.value="__change__";chg.textContent="\u2699 Change who I am";sel.appendChild(chg);
+function buildQuicknav(){var sel=document.getElementById("quicknav");sel.innerHTML='<option value="">Jump to&hellip;</option><option value="0">&#127968; Welcome &mdash; This Week</option><option value="1">&#128203; Prayer Board</option><option value="2">&#128591; Prayer &amp; Theme</option><option value="3">&#10024; God Is Faithful</option>';men.forEach(function(man,i){var opt=document.createElement("option");opt.value=4+i;opt.textContent=man.name;sel.appendChild(opt);});var chg=document.createElement("option");chg.value="__change__";chg.textContent="\u2699 Change who I am";sel.appendChild(chg);
   var dm=document.createElement("option");dm.value="__darkmode__";dm.textContent=document.body.classList.contains("dark-mode")?"\u2600 Switch to Light Mode":"\u{1F319} Switch to Dark Mode";sel.appendChild(dm);}
 function goTo(idx,animate){
   if(animate===undefined)animate=true;
@@ -946,9 +1055,11 @@ async function tapPray(prayerId,fromSummary){
 
 function prayBtnLabel(prayerId,count){
   var names=prayerPrays[prayerId]||[];
-  if(!names.length)return"&#x1F64F;&nbsp;Praying";
-  if(names.length<=2)return"&#x1F64F;&nbsp;"+names.join(" & ")+" praying";
-  return"&#x1F64F;&nbsp;"+names.slice(0,2).join(", ")+" & "+(names.length-2)+" more praying";
+  var n=Math.max(count||0,names.length);
+  var bubble=n>0?'<span class="pray-count">'+n+'</span>':'';
+  if(!names.length)return bubble+"&#x1F64F;&nbsp;"+(n>0?"Praying":"Pray");
+  if(names.length<=2)return bubble+"&#x1F64F;&nbsp;"+names.join(" & ")+" praying";
+  return bubble+"&#x1F64F;&nbsp;"+names.slice(0,2).join(", ")+" & "+(names.length-2)+" more praying";
 }
 
 // TOGGLE SECTION
@@ -1216,8 +1327,6 @@ async function saveWeeklyEdit(){
   try{
     await dbFetch("weekly?id=eq.1",{method:"PATCH",prefer:"return=minimal",body:JSON.stringify(fields)});
     Object.assign(WEEKLY,fields);
-    document.getElementById("cover-week-label").textContent="Week of "+fields.week_of;
-    document.getElementById("cover-theme-label").textContent="Theme: "+fields.theme;
     document.getElementById("topbar-week").textContent="Week of "+fields.week_of;
     refreshWeeklySlide();
     showSave("&#10003; Weekly content saved");closeWeeklyEdit();
@@ -1245,6 +1354,7 @@ function refreshPersonSlide(manName){
 function refreshWeeklySlide(){
   var track=document.getElementById("slider-track");
   var slides=track.querySelectorAll(".slide");
+  track.replaceChild(buildCoverSlide(),slides[0]);
   track.replaceChild(buildWeeklySlide(),slides[2]);
 }
 
