@@ -424,6 +424,10 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
 .dark-mode .cp-text{color:#E2DBC6}
 .dark-mode .cp-actions{border-bottom-color:rgba(201,168,76,.15)}
 .dark-mode .cp-label{color:var(--gold)}
+.wk-edit-wrap{text-align:center;margin-top:34px}
+.wk-edit{background:none;border:none;padding:6px 10px;font-family:"DM Sans",sans-serif;font-size:11px;letter-spacing:.06em;color:var(--muted);opacity:.45;cursor:pointer;border-radius:8px;transition:opacity .2s}
+.wk-edit:hover,.wk-edit:focus-visible{opacity:1;outline:none;background:rgba(201,168,76,.1)}
+.dark-mode .wk-edit{color:#8A8070}
 /* ========================== END v3 ========================== */
 </style>
 </head>
@@ -451,11 +455,11 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       <span>Board</span>
     </button>
-    <button class="tab-btn" id="tab-weekly" onclick="goTo(2)" aria-label="Weekly Theme">
-      <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-      <span>Weekly</span>
+    <button class="tab-btn" id="tab-weekly" onclick="goTo(0)" aria-label="This Week">
+      <svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+      <span>This Week</span>
     </button>
-    <button class="tab-btn" id="tab-testimony" onclick="goTo(3)" aria-label="Testimonies">
+    <button class="tab-btn" id="tab-testimony" onclick="goTo(2)" aria-label="Testimonies">
       <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
       <span>Testimonies</span>
     </button>
@@ -610,6 +614,7 @@ function getLastVisit(){try{var t=localStorage.getItem('km_last_visit');return t
 function updateLastVisit(){try{localStorage.setItem('km_last_visit',new Date().toISOString());}catch(e){}}
 function isNewSinceLastVisit(createdAt){if(!lastVisit)return false;return new Date(createdAt)>lastVisit;}
 var currentSlide=0,totalSlides=0;
+var MAN_OFFSET=3; // slides: 0 Welcome/This Week, 1 Prayer Board, 2 Testimonies, 3+ men
 var addingForMan=null,profileForMan=null,pendingDeleteId=null,pendingDeleteManName=null;
 
 // IDENTITY
@@ -636,7 +641,7 @@ function goToMyPage(){
   if(!id||id==='__guest__')return;
   var man=men.find(function(m){return m.name===id;});
   if(!man)return;
-  goTo(4+men.indexOf(man));
+  goTo(MAN_OFFSET+men.indexOf(man));
 }
 function showIdentityPicker(){
   var grid=document.getElementById('identity-grid');
@@ -832,10 +837,9 @@ function buildSlides(){
   var track=document.getElementById("slider-track");track.innerHTML="";
   track.appendChild(buildCoverSlide());
   track.appendChild(buildBoardSlide());
-  track.appendChild(buildWeeklySlide());
   track.appendChild(buildTestimonySlide());
   men.forEach(function(man,i){track.appendChild(buildPersonSlide(man,i));});
-  totalSlides=4+men.length;
+  totalSlides=MAN_OFFSET+men.length;
   document.getElementById("topbar-week").textContent="Week of "+WEEKLY.week_of;
 }
 
@@ -858,6 +862,7 @@ function buildCoverSlide(){
     '<div class="landing-body">'+weeklyContentHTML()+
     '<button class="enter-btn" onclick="goTo(1)">Enter the Prayer Board <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>'+
     '<div class="enter-hint">See what your brothers are praying for this week</div>'+
+    '<div class="wk-edit-wrap"><button class="wk-edit" onclick="openWeeklyEdit()" aria-label="Edit this week&rsquo;s content" title="Edit this week&rsquo;s content">&#9998;&nbsp;Edit</button></div>'+
     '</div></div>';
   return div;
 }
@@ -916,15 +921,6 @@ function summaryCardHTML(p,isPinned){
     '</div>';
 }
 
-function buildWeeklySlide(){
-  var div=document.createElement("div");div.className="slide";
-  div.innerHTML='<div class="slide-inner wk-page" style="background:var(--cream)">'+
-    '<div class="person-header" style="margin-bottom:8px;padding-bottom:14px;border-bottom:1px solid var(--border)">'+
-    '<div><div class="person-name" style="font-size:18px">Prayer &amp; Theme</div><div class="person-name-sub">This week&rsquo;s word for the brothers</div></div>'+
-    '<div class="header-btns"><button class="icon-btn" onclick="openWeeklyEdit()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button></div>'+
-    '</div>'+weeklyContentHTML()+'</div>';
-  return div;
-}
 
 function buildTestimonySlide(){
   var div=document.createElement("div");div.className="slide";div.id="testimony-slide";
@@ -1033,7 +1029,7 @@ function prayerCardHTML(p){
 // DOTS & NAV
 function buildDots(){var bar=document.getElementById("dots-bar");bar.innerHTML="";for(var i=0;i<totalSlides;i++){var d=document.createElement("div");d.className="dot";(function(idx){d.addEventListener("click",function(){goTo(idx);});})(i);bar.appendChild(d);}}
 function updateDots(){document.querySelectorAll(".dot").forEach(function(d,i){d.classList.toggle("active",i===currentSlide);});}
-function buildQuicknav(){var sel=document.getElementById("quicknav");sel.innerHTML='<option value="">Jump to&hellip;</option><option value="0">&#127968; Welcome &mdash; This Week</option><option value="1">&#128203; Prayer Board</option><option value="2">&#128591; Prayer &amp; Theme</option><option value="3">&#10024; God Is Faithful</option>';men.forEach(function(man,i){var opt=document.createElement("option");opt.value=4+i;opt.textContent=man.name;sel.appendChild(opt);});var chg=document.createElement("option");chg.value="__change__";chg.textContent="\u2699 Change who I am";sel.appendChild(chg);
+function buildQuicknav(){var sel=document.getElementById("quicknav");sel.innerHTML='<option value="">Jump to&hellip;</option><option value="0">&#127968; Welcome &mdash; This Week</option><option value="1">&#128203; Prayer Board</option><option value="2">&#10024; God Is Faithful</option>';men.forEach(function(man,i){var opt=document.createElement("option");opt.value=MAN_OFFSET+i;opt.textContent=man.name;sel.appendChild(opt);});var chg=document.createElement("option");chg.value="__change__";chg.textContent="\u2699 Change who I am";sel.appendChild(chg);
   var dm=document.createElement("option");dm.value="__darkmode__";dm.textContent=document.body.classList.contains("dark-mode")?"\u2600 Switch to Light Mode":"\u{1F319} Switch to Dark Mode";sel.appendChild(dm);}
 function goTo(idx,animate){
   if(animate===undefined)animate=true;
@@ -1046,8 +1042,8 @@ function goTo(idx,animate){
   updateDots();
   document.getElementById("btn-prev").disabled=idx===0;
   document.getElementById("btn-next").disabled=idx===totalSlides-1;
-  var labels=["","Prayer Board","Prayer & Theme","God Is Faithful"];
-  document.getElementById("slide-counter").textContent=idx<4?(labels[idx]||""):(idx-3)+" / "+men.length;
+  var labels=["","Prayer Board","God Is Faithful"];
+  document.getElementById("slide-counter").textContent=idx<MAN_OFFSET?(labels[idx]||""):(idx-MAN_OFFSET+1)+" / "+men.length;
   document.getElementById("quicknav-wrap").style.display=idx>=1?"block":"none";
   document.getElementById("nav-arrows").className=idx===0?"dark":"light";
   // Update tab bar active state
@@ -1055,12 +1051,12 @@ function goTo(idx,animate){
     var el=document.getElementById(id);if(el)el.classList.remove("active");
   });
   if(idx===1){var t=document.getElementById("tab-board");if(t)t.classList.add("active");}
-  else if(idx===2){var t=document.getElementById("tab-weekly");if(t)t.classList.add("active");}
-  else if(idx===3){var t=document.getElementById("tab-testimony");if(t)t.classList.add("active");}
-  else if(idx>=4){
+  else if(idx===0){var t=document.getElementById("tab-weekly");if(t)t.classList.add("active");}
+  else if(idx===2){var t=document.getElementById("tab-testimony");if(t)t.classList.add("active");}
+  else if(idx>=MAN_OFFSET){
     var myId=getIdentity();
     var myMan=men.find(function(m){return m.name===myId;});
-    if(myMan&&idx===4+men.indexOf(myMan)){var t=document.getElementById("tab-mypage");if(t)t.classList.add("active");}
+    if(myMan&&idx===MAN_OFFSET+men.indexOf(myMan)){var t=document.getElementById("tab-mypage");if(t)t.classList.add("active");}
   }
   // Show/hide tab bar on cover
   var tabBar=document.getElementById("tab-bar");
@@ -1408,7 +1404,6 @@ function refreshWeeklySlide(){
   var track=document.getElementById("slider-track");
   var slides=track.querySelectorAll(".slide");
   track.replaceChild(buildCoverSlide(),slides[0]);
-  track.replaceChild(buildWeeklySlide(),slides[2]);
 }
 
 function refreshBoardSlide(){
@@ -1428,7 +1423,7 @@ function showDirectoryOverlay(){
     tile.className="identity-tile";
     tile.style.cursor="pointer";
     tile.innerHTML='<div class="identity-avatar">'+initials+'</div><div class="identity-name">'+m.name+'</div>';
-    tile.addEventListener("click",function(){closeDirectory();goTo(4+i);});
+    tile.addEventListener("click",function(){closeDirectory();goTo(MAN_OFFSET+i);});
     grid.appendChild(tile);
   });
   document.getElementById("directory-overlay").classList.add("open");
@@ -1466,7 +1461,7 @@ async function saveAddBrother(){
     buildSlides();buildDots();buildQuicknav();
     var newIdx=men.findIndex(function(m){return m.name===newMan.name;});
     closeAddBrother();closeDirectory();
-    goTo(4+newIdx,false);
+    goTo(MAN_OFFSET+newIdx,false);
     showSave("&#x1F64F; "+newMan.name+" added to the list");
   }catch(e){status.textContent="Error: "+e.message;btn.disabled=false;}
 }
