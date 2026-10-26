@@ -498,6 +498,8 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
   <div class="overlay-header"><div class="overlay-title" id="profile-title">My Profile</div><button class="overlay-close" onclick="closeProfile()" aria-label="Close">Cancel</button></div>
   <div class="overlay-body">
     <p class="form-hint" style="color:rgba(201,168,76,.55)">Your email will be used for the weekly prayer digest notification.</p>
+    <div><label class="form-label">Name</label><input class="form-input" type="text" id="profile-name" autocomplete="off" />
+    <div class="form-hint">Correct a spelling or update his name. His prayers, comments and birthday wishes move with him.</div></div>
     <div><label class="form-label">Email Address</label><input class="form-input" type="email" id="profile-email" placeholder="your@email.com" /></div>
     <div><label class="form-label">Phone Number <span style="color:rgba(201,168,76,.4);font-size:10px;text-transform:none;letter-spacing:0">(optional)</span></label><input class="form-input" type="tel" id="profile-phone" placeholder="+1 (416) 555-0000" /></div>
     <div><label class="form-label">Birthday <span style="color:rgba(201,168,76,.4);font-size:10px;text-transform:none;letter-spacing:0">(optional)</span></label><input class="form-input" type="date" id="profile-birthday" />
@@ -642,6 +644,12 @@ function goToMyPage(){
   var man=men.find(function(m){return m.name===id;});
   if(!man)return;
   goTo(MAN_OFFSET+men.indexOf(man));
+}
+function checkIdentity(){
+  var id=getIdentity();
+  if(!id){showIdentityPicker();return;}
+  if(id!=='__guest__'&&men.length&&!men.some(function(m){return m.name===id;})){showIdentityPicker();return;}
+  applyIdentity();
 }
 function showIdentityPicker(){
   var grid=document.getElementById('identity-grid');
@@ -794,7 +802,7 @@ async function init(){
     document.getElementById("btn-next").addEventListener("click",function(){goTo(currentSlide+1);});
     document.getElementById("quicknav").addEventListener("change",function(){if(this.value==="__change__"){showIdentityPicker();}else if(this.value==="__darkmode__"){toggleDarkMode();buildQuicknav();}else if(this.value!==""){goTo(parseInt(this.value));}setTimeout(function(){document.getElementById("quicknav").value="";},100);});
     var ls=document.getElementById("loading-screen");ls.classList.add("hidden");setTimeout(function(){ls.style.display="none";},500);
-    if(!getIdentity()){showIdentityPicker();}else{applyIdentity();}
+    checkIdentity();
     setTimeout(updateLastVisit,3000);
   }catch(e){
     console.error("Load error:",e);
@@ -822,7 +830,7 @@ async function init(){
       document.getElementById("btn-next").addEventListener("click",function(){goTo(currentSlide+1);});
       document.getElementById("quicknav").addEventListener("change",function(){if(this.value==="__change__"){showIdentityPicker();}else if(this.value!==""){goTo(parseInt(this.value));}setTimeout(function(){document.getElementById("quicknav").value="";},100);});
       var ls=document.getElementById("loading-screen");ls.classList.add("hidden");setTimeout(function(){ls.style.display="none";},500);
-      if(!getIdentity()){showIdentityPicker();}else{applyIdentity();}
+      checkIdentity();
       document.getElementById("offline-bar").classList.add("show");
       setTimeout(updateLastVisit,3000);
     } else {
@@ -1349,20 +1357,67 @@ async function saveAddPrayer(){
 }
 
 // PROFILE
-function openProfile(manName,idx){profileForMan={name:manName,idx:idx};var man=men.find(function(m){return m.name===manName;});document.getElementById("profile-title").textContent=manName+" \u2014 Profile";document.getElementById("profile-email").value=(man&&man.email)||"";document.getElementById("profile-phone").value=(man&&man.phone)||"";document.getElementById("profile-birthday").value=(man&&man.birthday)||"";document.getElementById("profile-status").textContent="";document.getElementById("profile-save-btn").disabled=false;document.getElementById("profile-overlay").classList.add("open");}
+function openProfile(manName,idx){profileForMan={name:manName,idx:idx};var man=men.find(function(m){return m.name===manName;});document.getElementById("profile-title").textContent=manName+" \u2014 Profile";document.getElementById("profile-name").value=manName;document.getElementById("profile-email").value=(man&&man.email)||"";document.getElementById("profile-phone").value=(man&&man.phone)||"";document.getElementById("profile-birthday").value=(man&&man.birthday)||"";document.getElementById("profile-status").textContent="";document.getElementById("profile-save-btn").disabled=false;document.getElementById("profile-overlay").classList.add("open");}
 function closeProfile(){document.getElementById("profile-overlay").classList.remove("open");profileForMan=null;}
 async function saveProfile(){
   if(!profileForMan)return;
   var btn=document.getElementById("profile-save-btn"),status=document.getElementById("profile-status");
-  btn.disabled=true;status.textContent="Saving\u2026";
+  var oldName=profileForMan.renameFrom||profileForMan.name;
+  var newName=document.getElementById("profile-name").value.trim().replace(/\s+/g," ");
   var email=document.getElementById("profile-email").value.trim();
   var phone=document.getElementById("profile-phone").value.trim();
   var birthday=document.getElementById("profile-birthday").value||null;
+  if(!newName){status.textContent="Name can\u2019t be blank.";return;}
+  var renaming=newName!==oldName;
+  if(renaming&&men.some(function(m){return m.name!==oldName&&m.name!==profileForMan.name&&m.name.toLowerCase()===newName.toLowerCase();})){
+    status.textContent="Another brother already has that name.";return;
+  }
+  btn.disabled=true;status.textContent=renaming?"Updating name everywhere\u2026":"Saving\u2026";
   try{
-    await dbFetch("men?name=eq."+encodeURIComponent(profileForMan.name),{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({email:email,phone:phone,birthday:birthday})});
-    var man=men.find(function(m){return m.name===profileForMan.name;});if(man){man.email=email;man.phone=phone;man.birthday=birthday;}
-    showSave("&#10003; Profile saved");closeProfile();
-  }catch(e){status.textContent="Error: "+e.message;btn.disabled=false;}
+    // 1. The brother's own record (skip if a previous attempt already renamed it)
+    var body={email:email,phone:phone,birthday:birthday};if(renaming)body.name=newName;
+    var matchName=profileForMan.renameFrom?profileForMan.name:oldName;
+    await dbFetch("men?name=eq."+encodeURIComponent(matchName),{method:"PATCH",prefer:"return=minimal",body:JSON.stringify(body)});
+    var man=men.find(function(m){return m.name===matchName;});
+    if(man){man.email=email;man.phone=phone;man.birthday=birthday;}
+    if(renaming){
+      if(man)man.name=newName;
+      profileForMan.renameFrom=oldName;profileForMan.name=newName; // lets "Save" retry the cascade if it fails
+      // 2. Everything linked to him by name
+      var enc=encodeURIComponent(oldName);
+      await Promise.all([
+        dbFetch("prayers?man_name=eq."+enc,{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({man_name:newName})}),
+        dbFetch("comments?man_name=eq."+enc,{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({man_name:newName})}),
+        dbFetch("prayer_prays?man_name=eq."+enc,{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({man_name:newName})}),
+        dbFetch("birthday_wishes?man_name=eq."+enc,{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({man_name:newName})}),
+        dbFetch("birthday_wishes?from_name=eq."+enc,{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({from_name:newName})})
+      ]);
+      applyRenameLocally(oldName,newName);
+      showSave("&#10003; Renamed to "+newName);
+    } else {
+      showSave("&#10003; Profile saved");
+    }
+    closeProfile();
+  }catch(e){
+    status.textContent=profileForMan&&profileForMan.renameFrom
+      ?"His name changed, but some older posts didn\u2019t update. Tap Save again to finish."
+      :"Error: "+e.message;
+    btn.disabled=false;
+  }
+}
+function applyRenameLocally(oldName,newName){
+  if(prayers[oldName]){prayers[newName]=prayers[oldName];delete prayers[oldName];}
+  Object.keys(prayers).forEach(function(k){(prayers[k]||[]).forEach(function(p){if(p.man_name===oldName)p.man_name=newName;});});
+  weeklyPrayers.forEach(function(p){if(p.man_name===oldName)p.man_name=newName;});
+  Object.keys(comments).forEach(function(k){(comments[k]||[]).forEach(function(c){if(c.man_name===oldName)c.man_name=newName;});});
+  Object.keys(prayerPrays).forEach(function(k){prayerPrays[k]=(prayerPrays[k]||[]).map(function(n){return n===oldName?newName:n;});});
+  birthdayWishes.forEach(function(w){if(w.man_name===oldName)w.man_name=newName;if(w.from_name===oldName)w.from_name=newName;});
+  try{if(localStorage.getItem('km_identity')===oldName)localStorage.setItem('km_identity',newName);}catch(e){}
+  men.sort(function(a,b){return a.name.localeCompare(b.name);});
+  var keep=currentSlide<MAN_OFFSET?currentSlide:null;
+  buildSlides();buildDots();buildQuicknav();applyIdentity();
+  var idx=men.findIndex(function(m){return m.name===newName;});
+  goTo(keep!==null?keep:MAN_OFFSET+idx,false);
 }
 
 // WEEKLY EDIT
