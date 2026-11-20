@@ -90,8 +90,13 @@ Deno.serve(async (req) => {
     if (action === "admin_overview") {
       const { data } = await db.from("men").select("id,name,username,user_id,is_admin").order("name");
       const { data: v } = await db.rpc("km_visitor_get");
+      const seen: Record<string, string | null> = {};
+      try {
+        const { data: users } = await db.auth.admin.listUsers({ page: 1, perPage: 1000 });
+        (users?.users || []).forEach((u: any) => { seen[u.id] = u.last_sign_in_at || null; });
+      } catch (_) { /* last sign-in is optional */ }
       return json({
-        men: (data || []).map((m: any) => ({ id: m.id, name: m.name, username: m.username, joined: !!m.user_id, is_admin: m.is_admin })),
+        men: (data || []).map((m: any) => ({ id: m.id, name: m.name, username: m.username, joined: !!m.user_id, is_admin: m.is_admin, last_sign_in: m.user_id ? seen[m.user_id] || null : null })),
         group_code: await setting("group_code"),
         visitor_username: Array.isArray(v) && v[0] ? v[0].username : null,
       });

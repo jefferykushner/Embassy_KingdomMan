@@ -296,7 +296,7 @@ html,body{height:100%;overflow:hidden;background:var(--dark);font-family:"DM San
 .hero-img{position:relative;display:block;width:min(100%,1000px,calc(60vh * 1.5));height:auto;aspect-ratio:3/2}
 .hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:36px;background:linear-gradient(to bottom,transparent,var(--cream));pointer-events:none}
 @media(min-width:760px){.hero::after{height:60px}}
-.landing-body{max-width:980px;margin:0 auto;padding:6px 18px 56px}
+.landing-body{max-width:980px;margin:0 auto;padding:6px 18px 110px}
 @media(min-width:600px){.landing-body{padding-bottom:110px}}
 /* Weekly content (shared by landing + Weekly tab) */
 .wk-intro{text-align:center;margin:16px 0 22px}
@@ -499,6 +499,20 @@ select.auth-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
 .gc-tag.cancel{background:rgba(220,120,120,.2);color:#F3C9B8}
 .ge-cancel-row{display:flex;align-items:center;gap:10px;font-size:16px;color:#FDFAF3;padding:12px 14px;border:1px solid var(--border);border-radius:12px;cursor:pointer}
 .ge-cancel-row input{width:22px;height:22px;accent-color:#C9A84C}
+/* Admin page */
+#admin-overlay.admin-page{z-index:19;bottom:0;background:#0D1B2A}
+#admin-overlay.admin-page .overlay-body{padding-bottom:40px}
+.ad-tabs{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:10px 14px;background:var(--navy);border-bottom:1px solid rgba(201,168,76,.25);flex-shrink:0;scrollbar-width:none}
+.ad-tabs::-webkit-scrollbar{display:none}
+.ad-tab{flex-shrink:0;background:transparent;border:1px solid var(--border);border-radius:20px;padding:8px 14px;color:rgba(240,214,138,.8);font-size:14px;font-family:"DM Sans",sans-serif;cursor:pointer;white-space:nowrap}
+.ad-tab.active{background:var(--gold);color:#0E0C05;border-color:var(--gold);font-weight:600}
+.ad-panel{display:none;flex-direction:column;gap:12px}
+.ad-panel.active{display:flex}
+.ad-badge{display:inline-block;font-size:11px;padding:1px 8px;border-radius:10px;margin-left:6px;vertical-align:middle;background:rgba(201,168,76,.18);color:var(--gold-light)}
+.ad-badge.ok{background:rgba(76,175,80,.2);color:#A8D8A8}
+.ad-badge.no{background:rgba(255,255,255,.08);color:rgba(240,214,138,.6)}
+.ad-act-text{font-size:14px;color:#E9E1C8;line-height:1.5;margin-top:4px;white-space:pre-line;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden}
+.ad-btns{display:flex;gap:6px;flex-wrap:wrap}
 /* ========================== END v4 ========================== */
 </style>
 </head>
@@ -589,22 +603,6 @@ select.auth-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
     <div class="overlay-status" id="profile-status"></div>
   </div>
 </div>
-<!-- WEEKLY EDIT -->
-<div class="overlay" id="weekly-edit-overlay">
-  <div class="overlay-header"><div class="overlay-title">Edit This Week</div><button class="overlay-close" onclick="closeWeeklyEdit()" aria-label="Close">Cancel</button></div>
-  <div class="overlay-body">
-    <p class="form-hint" style="color:rgba(201,168,76,.55)">Changes appear for everyone immediately. The weekly writer won&rsquo;t replace content you&rsquo;ve saved for a week &mdash; it only fills in weeks you haven&rsquo;t written.</p>
-    <div><label class="form-label">Week Of</label><input id="we-week" class="form-input" type="text" placeholder="e.g. June 22nd, 2026" /></div>
-    <div><label class="form-label">Theme</label><input id="we-theme" class="form-input" type="text" /></div>
-    <div><label class="form-label">Verse</label><textarea id="we-verse" class="form-textarea" rows="2"></textarea></div>
-    <div><label class="form-label">Reference</label><input id="we-reference" class="form-input" type="text" /></div>
-    <div><label class="form-label">Context</label><textarea id="we-context" class="form-textarea" rows="3"></textarea></div>
-    <div><label class="form-label">Prayer for the Week</label><textarea id="we-prayer" class="form-textarea" rows="6"></textarea></div>
-    <div><label class="form-label">Affirmation for the Week</label><textarea id="we-affirmation" class="form-textarea" rows="3" placeholder="A word of encouragement for the brothers this week..."></textarea></div>
-    <button class="overlay-save" id="weekly-save-btn" onclick="saveWeeklyEdit()">Save Weekly Content</button>
-    <div class="overlay-status" id="weekly-status"></div>
-  </div>
-</div>
 <!-- SIGN IN / JOIN -->
 <div id="auth-screen">
   <div class="auth-wrap">
@@ -685,38 +683,87 @@ select.auth-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
     <div class="overlay-status" id="addbrother-status"></div>
   </div>
 </div>
-<!-- ADMIN TOOLS -->
-<div class="overlay" id="admin-overlay">
-  <div class="overlay-header"><div class="overlay-title">Admin tools</div><button class="overlay-close" onclick="closeAdmin()">Close</button></div>
-  <div class="overlay-body">
-    <div class="ad-sec"><h3>Next gatherings</h3>
-      <div class="form-hint">Tap <b>Change</b> to adjust or cancel one week only. Every other week stays as usual.</div>
-      <div id="ad-gather-list" style="margin-top:6px"></div>
-      <details style="margin-top:10px"><summary class="form-hint" style="cursor:pointer;color:var(--gold-light)">Usual room &amp; time</summary>
-        <label class="form-label" style="margin-top:10px">Room</label><input class="form-input" id="ad-groom" />
-        <label class="form-label" style="margin-top:10px">Start time</label><input class="form-input" id="ad-gtime" />
-        <button class="ad-btn" style="margin-top:10px" onclick="adminSaveGatherDefaults()">Save usual details</button>
-      </details>
+<!-- ADMIN PAGE (only built into the page for the admin) -->
+<div class="overlay admin-page" id="admin-overlay" role="dialog" aria-label="Admin">
+  <div class="overlay-header"><div class="overlay-title">&#9881; Admin</div><button class="overlay-close" onclick="closeAdmin()">Close</button></div>
+  <div class="ad-tabs" role="tablist">
+    <button class="ad-tab" data-tab="week" onclick="adminTab('week')">This Week</button>
+    <button class="ad-tab" data-tab="brothers" onclick="adminTab('brothers')">Brothers</button>
+    <button class="ad-tab" data-tab="gather" onclick="adminTab('gather')">Gatherings</button>
+    <button class="ad-tab" data-tab="themes" onclick="adminTab('themes')">Themes</button>
+    <button class="ad-tab" data-tab="activity" onclick="adminTab('activity')">Activity</button>
+    <button class="ad-tab" data-tab="settings" onclick="adminTab('settings')">Settings</button>
+  </div>
+  <div class="overlay-body" id="admin-body">
+
+    <div class="ad-panel" data-panel="week">
+      <div class="ad-sec">
+        <h3>Front page content</h3>
+        <div class="form-hint" id="we-source"></div>
+        <div class="form-hint">Saving marks this week as yours, so the weekly writer (Sundays, 11:41 pm) won&rsquo;t replace it. Put that week&rsquo;s Monday date in &ldquo;Week of&rdquo;.</div>
+        <label class="form-label" style="margin-top:12px">Week of</label><input id="we-week" class="form-input" type="text" placeholder="e.g. November 23rd, 2026" />
+        <label class="form-label" style="margin-top:12px">Theme</label><input id="we-theme" class="form-input" type="text" />
+        <label class="form-label" style="margin-top:12px">Verse</label><textarea id="we-verse" class="form-textarea" rows="3" style="min-height:80px"></textarea>
+        <label class="form-label" style="margin-top:12px">Reference</label><input id="we-reference" class="form-input" type="text" placeholder="e.g. Psalm 37:23 (NLT)" />
+        <label class="form-label" style="margin-top:12px">Context</label><textarea id="we-context" class="form-textarea" rows="5"></textarea>
+        <label class="form-label" style="margin-top:12px">Prayer for the week <span style="text-transform:none;letter-spacing:0">(blank line between paragraphs)</span></label><textarea id="we-prayer" class="form-textarea" rows="10" style="min-height:220px"></textarea>
+        <label class="form-label" style="margin-top:12px">Affirmation for the week</label><textarea id="we-affirmation" class="form-textarea" rows="5" placeholder="A word of encouragement for the brothers this week..."></textarea>
+        <button class="overlay-save" id="weekly-save-btn" style="margin-top:14px" onclick="saveWeeklyEdit()">Save &amp; publish</button>
+        <div class="overlay-status" id="weekly-status"></div>
+      </div>
+      <div class="ad-sec"><h3>Past weeks</h3><div id="ad-history"></div></div>
     </div>
-    <div class="ad-sec"><h3>Upcoming themes</h3>
-      <div class="form-hint">Ideas for the weekly page. Pick a week to use it on, or leave it open and the weekly writer will use it soon. Used ideas are ticked off.</div>
-      <div id="ad-themes" style="margin-top:6px"></div>
-      <textarea class="form-textarea" id="ad-theme-text" rows="2" style="min-height:64px;margin-top:10px" placeholder="e.g. Leading at home with patience"></textarea>
-      <label class="form-label" style="margin-top:10px">Use on the week of (optional)</label>
-      <select class="form-select" id="ad-theme-week"><option value="">Any week soon</option></select>
-      <button class="ad-btn" style="margin-top:10px" onclick="adminAddTheme()">Add theme</button>
+
+    <div class="ad-panel" data-panel="brothers">
+      <div class="ad-sec"><h3>Brothers &amp; logins</h3>
+        <div id="ad-list"></div>
+        <button class="ad-btn" style="margin-top:12px" onclick="openAddBrother()">+ Add a brother</button>
+      </div>
     </div>
-    <div class="ad-sec"><h3>Group code</h3>
-      <div class="form-hint">Post this in the WhatsApp chat so brothers can join. Changing it doesn&rsquo;t affect anyone who has already joined.</div>
-      <div class="ad-inline"><input class="form-input" id="ad-code" autocapitalize="characters" /><button class="ad-btn" onclick="adminSaveCode()">Save</button></div>
+
+    <div class="ad-panel" data-panel="gather">
+      <div class="ad-sec"><h3>Next gatherings</h3>
+        <div class="form-hint">Tap <b>Change</b> to adjust or cancel one week only. Every other week stays as usual.</div>
+        <div id="ad-gather-list" style="margin-top:6px"></div>
+        <details style="margin-top:10px"><summary class="form-hint" style="cursor:pointer;color:var(--gold-light)">Usual room &amp; time</summary>
+          <label class="form-label" style="margin-top:10px">Room</label><input class="form-input" id="ad-groom" />
+          <label class="form-label" style="margin-top:10px">Start time</label><input class="form-input" id="ad-gtime" />
+          <button class="ad-btn" style="margin-top:10px" onclick="adminSaveGatherDefaults()">Save usual details</button>
+        </details>
+      </div>
     </div>
-    <div class="ad-sec"><h3>Visitor login</h3>
-      <div class="form-hint">Share with newcomers. Visitors see the weekly page and each request&rsquo;s initials and date &mdash; never the prayer itself.</div>
-      <label class="form-label" style="margin-top:10px">Visitor username</label><input class="form-input" id="ad-vuser" autocapitalize="none" placeholder="e.g. visitor" />
-      <label class="form-label" style="margin-top:10px">Visitor password</label><input class="form-input" id="ad-vpass" type="text" autocapitalize="none" placeholder="At least 6 characters" />
-      <button class="ad-btn" style="margin-top:10px" onclick="adminSaveVisitor()">Save visitor login</button>
+
+    <div class="ad-panel" data-panel="themes">
+      <div class="ad-sec"><h3>Upcoming themes</h3>
+        <div class="form-hint">Ideas for the weekly page. Pick a week to use it on, or leave it open and the weekly writer will use it soon. Used ideas are ticked off.</div>
+        <div id="ad-themes" style="margin-top:6px"></div>
+        <textarea class="form-textarea" id="ad-theme-text" rows="2" style="min-height:64px;margin-top:10px" placeholder="e.g. Leading at home with patience"></textarea>
+        <label class="form-label" style="margin-top:10px">Use on the week of (optional)</label>
+        <select class="form-select" id="ad-theme-week"><option value="">Any week soon</option></select>
+        <button class="ad-btn" style="margin-top:10px" onclick="adminAddTheme()">Add theme</button>
+      </div>
     </div>
-    <div class="ad-sec"><h3>Brothers&rsquo; logins</h3><div id="ad-list"></div></div>
+
+    <div class="ad-panel" data-panel="activity">
+      <div class="ad-sec"><h3>Recent activity</h3>
+        <div class="form-hint">The newest prayers and comments from everyone. Edit or remove anything that shouldn&rsquo;t be there.</div>
+        <div id="ad-activity" style="margin-top:6px"></div>
+      </div>
+    </div>
+
+    <div class="ad-panel" data-panel="settings">
+      <div class="ad-sec"><h3>Group code</h3>
+        <div class="form-hint">Post this in the WhatsApp chat so brothers can join. Changing it doesn&rsquo;t affect anyone who has already joined.</div>
+        <div class="ad-inline"><input class="form-input" id="ad-code" autocapitalize="characters" /><button class="ad-btn" onclick="adminSaveCode()">Save</button></div>
+      </div>
+      <div class="ad-sec"><h3>Visitor login</h3>
+        <div class="form-hint">Share with newcomers. Visitors see the weekly page, the next gathering, and each request&rsquo;s initials and date &mdash; never the prayer itself.</div>
+        <label class="form-label" style="margin-top:10px">Visitor username</label><input class="form-input" id="ad-vuser" autocapitalize="none" placeholder="e.g. visitor" />
+        <label class="form-label" style="margin-top:10px">New visitor password</label><input class="form-input" id="ad-vpass" type="text" autocapitalize="none" placeholder="At least 6 characters" />
+        <button class="ad-btn" style="margin-top:10px" onclick="adminSaveVisitor()">Save visitor login</button>
+      </div>
+    </div>
+
     <div class="overlay-status" id="ad-status"></div>
   </div>
 </div>
@@ -1052,12 +1099,16 @@ function startUI(){
   document.getElementById("btn-next").addEventListener("click",function(){goTo(currentSlide+1);});
   document.getElementById("quicknav").addEventListener("change",function(){var v=this.value;
     if(v==="__signout__"){if(confirm("Sign out of the prayer board?"))signOut();}
-    else if(v==="__admin__"){openAdmin();}
     else if(v==="__darkmode__"){toggleDarkMode();buildQuicknav();}
     else if(v!==""){goTo(parseInt(v));}
     setTimeout(function(){document.getElementById("quicknav").value="";},100);});
   hideLoading();
   applyIdentity();
+  if(isAdmin&&!document.getElementById("tab-admin")){
+    var tb=document.createElement("button");tb.className="tab-btn";tb.id="tab-admin";tb.setAttribute("aria-label","Admin");tb.onclick=function(){openAdmin();};
+    tb.innerHTML='<svg viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5l8-3z"/><path d="M9 12l2 2 4-4"/></svg><span>Admin</span>';
+    document.getElementById("tab-bar").appendChild(tb);
+  }
   setTimeout(updateLastVisit,3000);
   var jj=null;try{jj=sessionStorage.getItem("km_just_joined");sessionStorage.removeItem("km_just_joined");}catch(e){}
   if(jj&&myName){justJoined=jj;var mi=men.findIndex(function(m){return m.name===myName;});openProfile(myName,mi,true);}
@@ -1175,7 +1226,7 @@ function buildCoverSlide(){
     '<div class="landing-body">'+gatheringCardHTML()+weeklyContentHTML()+
     '<button class="enter-btn" onclick="goTo(1)">'+(isVisitor?'See the Prayer Board':'Enter the Prayer Board')+' <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>'+
     '<div class="enter-hint">'+(isVisitor?'See how the brothers stand together in prayer':'See what your brothers are praying for this week')+'</div>'+
-    (isAdmin?'<div class="wk-edit-wrap"><button class="wk-edit" onclick="openWeeklyEdit()" aria-label="Edit this week&rsquo;s content" title="Edit this week&rsquo;s content">&#9998;&nbsp;Edit</button></div>':'')+
+
     '</div></div>';
   return div;
 }
@@ -1335,11 +1386,11 @@ function prayerCardHTML(p){
 function buildDots(){var bar=document.getElementById("dots-bar");bar.innerHTML="";for(var i=0;i<totalSlides;i++){var d=document.createElement("div");d.className="dot";(function(idx){d.addEventListener("click",function(){goTo(idx);});})(i);bar.appendChild(d);}}
 function updateDots(){document.querySelectorAll(".dot").forEach(function(d,i){d.classList.toggle("active",i===currentSlide);});}
 function buildQuicknav(){var sel=document.getElementById("quicknav");sel.innerHTML='<option value="">Jump to&hellip;</option><option value="0">&#127968; Welcome &mdash; This Week</option><option value="1">&#128203; Prayer Board</option><option value="2">&#10024; God Is Faithful</option>';men.forEach(function(man,i){var opt=document.createElement("option");opt.value=MAN_OFFSET+i;opt.textContent=man.name;sel.appendChild(opt);});if(isVisitor){sel.innerHTML='<option value="">Jump to&hellip;</option><option value="0">&#127968; Welcome &mdash; This Week</option><option value="1">&#128203; Prayer Board</option><option value="2">&#10024; God Is Faithful</option>';}
-  if(isAdmin){var ad=document.createElement("option");ad.value="__admin__";ad.textContent="\u2699 Admin tools";sel.appendChild(ad);}
   var dm=document.createElement("option");dm.value="__darkmode__";dm.textContent=document.body.classList.contains("dark-mode")?"\u2600 Switch to Light Mode":"\u{1F319} Switch to Dark Mode";sel.appendChild(dm);
   var so=document.createElement("option");so.value="__signout__";so.textContent="\u21AA Sign out"+(myName?" ("+myName+")":isVisitor?" (visitor)":"");sel.appendChild(so);}
 function goTo(idx,animate){
   if(animate===undefined)animate=true;
+  if(adminOpen)closeAdmin(true);
   if(idx<0||idx>=totalSlides)return;
   currentSlide=idx;
   var track=document.getElementById("slider-track");
@@ -1354,7 +1405,7 @@ function goTo(idx,animate){
   document.getElementById("quicknav-wrap").style.display=idx>=1?"block":"none";
   document.getElementById("nav-arrows").className=idx===0?"dark":"light";
   // Update tab bar active state
-  ["tab-board","tab-weekly","tab-testimony","tab-directory","tab-mypage"].forEach(function(id){
+  ["tab-board","tab-weekly","tab-testimony","tab-directory","tab-mypage","tab-admin"].forEach(function(id){
     var el=document.getElementById(id);if(el)el.classList.remove("active");
   });
   if(idx===1){var t=document.getElementById("tab-board");if(t)t.classList.add("active");}
@@ -1367,7 +1418,7 @@ function goTo(idx,animate){
   }
   // Show/hide tab bar on cover
   var tabBar=document.getElementById("tab-bar");
-  if(tabBar)tabBar.style.display=idx===0?"none":"flex";
+  if(tabBar)tabBar.style.display="flex";
 }
 function setupSwipe(){
   // Keyboard nav for desktop
@@ -1449,7 +1500,7 @@ async function deleteComment(cid,pid){
     await dbFetch("comments?id=eq."+cid,{method:"DELETE",prefer:"return=minimal"});
     comments[pid]=(comments[pid]||[]).filter(function(c){return c.id!==cid;});
     document.querySelectorAll('[data-cid="'+cid+'"]').forEach(function(el){el.remove();});
-    updateReplyCount(pid);
+    updateReplyCount(pid);adminRefreshActivity();
     showSave("&#x1F5D1; Comment removed");
   }catch(e){alert("Error: "+e.message);}
 }
@@ -1546,7 +1597,7 @@ async function saveEditPrayer(){
     });
     refreshPersonSlide(editingPrayerManName);
     refreshBoardSlide();
-    showSave("&#x270E; Prayer updated");
+    showSave("&#x270E; Prayer updated");adminRefreshActivity();
     closeEditPrayer();
   }catch(e){status.textContent="Error: "+e.message;btn.disabled=false;}
 }
@@ -1609,7 +1660,7 @@ async function confirmDelete(){
     if(prayers[mn])prayers[mn]=prayers[mn].filter(function(p){return p.id!==id;});
     weeklyPrayers=weeklyPrayers.filter(function(p){return p.id!==id;});
     var pc=document.getElementById("pcard-"+id);if(pc)pc.remove();
-    refreshPersonSlide(mn);refreshBoardSlide();refreshTestimonySlide();showSave("&#x1F5D1; Prayer removed");
+    refreshPersonSlide(mn);refreshBoardSlide();refreshTestimonySlide();adminRefreshActivity();showSave("&#x1F5D1; Prayer removed");
   }catch(e){alert("Error: "+e.message);}
 }
 
@@ -1905,16 +1956,54 @@ async function adminDeleteTheme(id){
 }
 
 // ADMIN TOOLS (Jeffery only — the server double-checks)
-var adminData=null;
-async function openAdmin(){
+var adminData=null,adminOpen=false,adminCurrentTab="week";
+function openAdmin(tab){
   if(!isAdmin)return;
-  document.getElementById("admin-overlay").classList.add("open");
+  adminOpen=true;
+  var ov=document.getElementById("admin-overlay");
+  document.getElementById("tab-bar").style.display="flex";
+  ov.style.bottom=document.getElementById("tab-bar").offsetHeight+"px"; // keep the bottom bar usable
+  ov.classList.add("open");
+  ["tab-board","tab-weekly","tab-testimony","tab-directory","tab-mypage"].forEach(function(id){var el=document.getElementById(id);if(el)el.classList.remove("active");});
+  var ta=document.getElementById("tab-admin");if(ta)ta.classList.add("active");
+  document.getElementById("tab-bar").style.display="flex";
+  adminTab(tab||adminCurrentTab);
+}
+function closeAdmin(fromNav){
+  adminOpen=false;
+  document.getElementById("admin-overlay").classList.remove("open");
+  var ta=document.getElementById("tab-admin");if(ta)ta.classList.remove("active");
+  if(!fromNav)goTo(currentSlide,false);
+}
+function adminTab(name){
+  adminCurrentTab=name;
+  document.querySelectorAll("#admin-overlay .ad-tab").forEach(function(b){b.classList.toggle("active",b.getAttribute("data-tab")===name);});
+  document.querySelectorAll("#admin-overlay .ad-panel").forEach(function(p){p.classList.toggle("active",p.getAttribute("data-panel")===name);});
+  document.getElementById("admin-body").scrollTop=0;
+  document.getElementById("ad-status").textContent="";
+  if(name==="week")adminLoadWeek();
+  else if(name==="brothers"||name==="settings")adminLoadOverview();
+  else if(name==="gather")adminLoadGatherings();
+  else if(name==="themes")adminLoadThemes();
+  else if(name==="activity")adminLoadActivity();
+}
+function shortDate(iso){if(!iso)return"";var d=new Date(iso);return d.toLocaleDateString("en-CA",{month:"short",day:"numeric",year:"numeric",timeZone:"America/Toronto"});}
+async function adminLoadWeek(){
+  try{
+    var r=await Promise.all([dbFetch("weekly?select=*&limit=1"),dbFetch("weekly_history?select=week_start,week_of,theme,reference,source&order=week_start.desc&limit=12")]);
+    var w=r[0]&&r[0][0];
+    if(w){["theme","verse","reference","context","prayer","week_of","affirmation"].forEach(function(k){if(w[k]!=null)WEEKLY[k]=w[k];});}
+    openWeeklyEdit();
+    document.getElementById("we-source").innerHTML=w?('Currently showing: <b>week of '+esc(w.week_of)+'</b> &middot; '+(w.source==="auto"?'written by the weekly writer':'written by you')+(w.updated_at?' &middot; saved '+esc(shortDate(w.updated_at)):'')):'';
+    var h="";(r[1]||[]).forEach(function(x){h+='<div class="ad-row"><div class="ad-name">'+esc(x.theme||"(no theme)")+'<small>Week of '+esc(x.week_of||x.week_start)+(x.reference?' &middot; '+esc(x.reference):'')+'</small></div><span class="ad-badge'+(x.source==="auto"?'':' ok')+'">'+(x.source==="auto"?'Writer':'You')+'</span></div>';});
+    document.getElementById("ad-history").innerHTML=h||'<div class="form-hint">No past weeks yet.</div>';
+  }catch(e){document.getElementById("ad-status").textContent="Error: "+e.message;}
+}
+async function adminLoadOverview(){
   var st=document.getElementById("ad-status");st.textContent="Loading…";
-  adminLoadGatherings();adminLoadThemes();
   try{adminData=await kmAuth("admin_overview");renderAdmin();st.textContent="";}
   catch(e){st.textContent="Error: "+e.message;}
 }
-function closeAdmin(){document.getElementById("admin-overlay").classList.remove("open");}
 function renderAdmin(){
   document.getElementById("ad-code").value=adminData.group_code||"";
   document.getElementById("ad-vuser").value=adminData.visitor_username||"visitor";
@@ -1922,11 +2011,37 @@ function renderAdmin(){
   var joined=adminData.men.filter(function(m){return m.joined;}).length;
   var h='<div class="form-hint" style="margin-bottom:6px">'+joined+' of '+adminData.men.length+' brothers have joined.</div>';
   adminData.men.forEach(function(m){
-    h+='<div class="ad-row"><div class="ad-name">'+esc(m.name)+(m.is_admin?' &#9733;':'')+'<small>'+(m.joined?'username: '+esc(m.username):'not joined yet')+'</small></div>'+
-      (m.joined?'<button class="ad-btn" onclick="adminReset('+m.id+')">Reset password</button>'+(m.is_admin?'':'<button class="ad-btn danger" onclick="adminUnlink('+m.id+')">Remove login</button>'):'')+'</div>';
+    var idx=men.findIndex(function(x){return x.name===m.name;});
+    h+='<div class="ad-row"><div class="ad-name">'+esc(m.name)+(m.is_admin?' &#9733;':'')+
+      (m.joined?'<span class="ad-badge ok">Joined</span>':'<span class="ad-badge no">Not joined</span>')+
+      '<small>'+(m.joined?'Username: <b>'+esc(m.username)+'</b>'+(m.last_sign_in?' &middot; last signed in '+esc(shortDate(m.last_sign_in)):' &middot; hasn’t signed in yet'):'Can join with the group code')+'</small></div>'+
+      '<div class="ad-btns">'+(idx>=0?'<button class="ad-btn" onclick="openProfile(\''+jsq(m.name)+'\','+idx+')">Profile</button>':'')+
+      (m.joined?'<button class="ad-btn" onclick="adminReset('+m.id+')">Reset password</button>'+(m.is_admin?'':'<button class="ad-btn danger" onclick="adminUnlink('+m.id+')">Remove login</button>'):'')+'</div></div>';
   });
   document.getElementById("ad-list").innerHTML=h;
 }
+async function adminLoadActivity(){
+  var box=document.getElementById("ad-activity");box.innerHTML='<div class="form-hint">Loading…</div>';
+  try{
+    var r=await Promise.all([dbFetch("prayers?select=*&order=created_at.desc&limit=25"),dbFetch("comments?select=*&order=created_at.desc&limit=25")]);
+    var items=(r[0]||[]).map(function(p){return{k:"p",t:p.created_at,x:p};}).concat((r[1]||[]).map(function(c){return{k:"c",t:c.created_at,x:c};}));
+    items.sort(function(a,b){return a.t<b.t?1:-1;});
+    var h="";
+    items.slice(0,30).forEach(function(it){
+      var x=it.x;
+      if(it.k==="p"){
+        h+='<div class="ad-row" style="align-items:flex-start"><div class="ad-name">&#128591; '+esc(x.man_name)+'<span class="ad-badge">'+esc(x.category)+'</span>'+(x.answered?'<span class="ad-badge ok">Answered</span>':'')+
+          '<small>Prayer &middot; '+esc(shortDate(x.created_at))+'</small><div class="ad-act-text">'+esc(x.prayer_text)+'</div></div>'+
+          '<div class="ad-btns"><button class="ad-btn" data-man="'+esc(x.man_name)+'" onclick="openEditPrayer('+x.id+',this)">Edit</button><button class="ad-btn danger" onclick="askDelete('+x.id+',\''+jsq(x.man_name)+'\')">Delete</button></div></div>';
+      }else{
+        h+='<div class="ad-row" style="align-items:flex-start"><div class="ad-name">&#x1F4AC; '+esc(x.man_name)+'<small>Comment &middot; '+esc(shortDate(x.created_at))+'</small><div class="ad-act-text">'+esc(x.comment_text)+'</div></div>'+
+          '<div class="ad-btns"><button class="ad-btn danger" onclick="deleteComment('+x.id+','+x.prayer_id+')">Delete</button></div></div>';
+      }
+    });
+    box.innerHTML=h||'<div class="form-hint">Nothing posted yet.</div>';
+  }catch(e){box.innerHTML='<div class="form-hint">Error: '+esc(e.message)+'</div>';}
+}
+function adminRefreshActivity(){if(adminOpen&&adminCurrentTab==="activity")adminLoadActivity();}
 function adminMan(id){return adminData.men.find(function(m){return m.id===id;});}
 async function adminReset(id){
   var m=adminMan(id);
@@ -1939,7 +2054,7 @@ async function adminReset(id){
 async function adminUnlink(id){
   var m=adminMan(id);
   if(!confirm("Remove "+m.name+"’s login? His prayers stay. He can join again with the group code (useful if the wrong person claimed his name)."))return;
-  try{await kmAuth("admin_unlink",{man_id:id});adminData=await kmAuth("admin_overview");renderAdmin();showSave("&#10003; Login removed");}
+  try{await kmAuth("admin_unlink",{man_id:id});await adminLoadOverview();showSave("&#10003; Login removed");}
   catch(e){alert("Error: "+e.message);}
 }
 async function adminSaveCode(){
@@ -1976,8 +2091,8 @@ function weekStartFromLabel(label){
   return ymd(addDays(d,-((d.getDay()+6)%7)));
 }
 function openWeeklyEdit(){document.getElementById("we-week").value=WEEKLY.week_of||"";document.getElementById("we-theme").value=WEEKLY.theme||"";document.getElementById("we-verse").value=WEEKLY.verse||"";document.getElementById("we-reference").value=WEEKLY.reference||"";document.getElementById("we-context").value=WEEKLY.context||"";document.getElementById("we-prayer").value=WEEKLY.prayer||"";
-  document.getElementById("we-affirmation").value=WEEKLY.affirmation||"";document.getElementById("weekly-status").textContent="";document.getElementById("weekly-save-btn").disabled=false;document.getElementById("weekly-edit-overlay").classList.add("open");}
-function closeWeeklyEdit(){document.getElementById("weekly-edit-overlay").classList.remove("open");}
+  document.getElementById("we-affirmation").value=WEEKLY.affirmation||"";document.getElementById("weekly-status").textContent="";document.getElementById("weekly-save-btn").disabled=false;}
+function closeWeeklyEdit(){}
 async function saveWeeklyEdit(){
   var btn=document.getElementById("weekly-save-btn"),status=document.getElementById("weekly-status");
   btn.disabled=true;status.textContent="Saving\u2026";
@@ -1989,7 +2104,7 @@ async function saveWeeklyEdit(){
     Object.assign(WEEKLY,fields);
     document.getElementById("topbar-week").textContent="Week of "+fields.week_of;
     refreshWeeklySlide();
-    showSave("&#10003; Weekly content saved");closeWeeklyEdit();
+    showSave("&#10003; Published to the front page");btn.disabled=false;status.textContent="Saved \u2014 marked as yours for this week.";adminLoadWeek();
   }catch(e){status.textContent="Error: "+e.message;btn.disabled=false;}
 }
 
