@@ -1442,19 +1442,23 @@ function announcementHTML(){
 function buildBoardSlide(){
   var div=document.createElement("div");div.className="slide";div.id="week-summary-slide";
   var all=[];Object.keys(prayers).forEach(function(k){all=all.concat(prayers[k]||[]);});
-  var g=sortGroups(all);
+  // Shared board: highlighted prayers keep their normal place (no brother's prayer ranks above another's);
+  // they're only marked with a gold border. Highlights reorder only a brother's own page.
+  var active=all.filter(function(p){return!p.answered;});
+  var g={pinned:active.filter(isPinnedP).sort(function(a,b){return new Date(a.prayer_date)-new Date(b.prayer_date);}),
+         older:active.filter(isOlderP).sort(byNewest)};
+  g.current=active.filter(function(p){return!isPinnedP(p)&&!isOlderP(p);}).sort(byNewest);
   var cards=announcementHTML();
   var bdays=getBirthdayMen();
   if(bdays.length){cards+='<div class="prayer-cat-label" style="margin-bottom:10px">&#127874; Birthdays</div>';bdays.forEach(function(b){cards+=birthdayCardHTML(b);});}
-  if(g.hl.length)cards+=sectionHTML('&#11088; Highlighted &mdash; ongoing',g.hl.map(function(p){return summaryCardHTML(p);}).join(""));
   if(g.pinned.length)cards+=sectionHTML('&#128204; Date-specific',g.pinned.map(function(p){return summaryCardHTML(p);}).join(""));
   if(g.current.length)cards+=sectionHTML('All current prayers',g.current.map(function(p){return summaryCardHTML(p);}).join(""));
   if(g.older.length){
     cards+='<button class="answered-section-toggle" onclick="toggleSection(\'board-older\')">&#128339; '+g.older.length+' older request'+(g.older.length!==1?'s':'')+' &mdash; not updated in 6+ weeks</button>'+
       '<div class="answered-list" id="board-older"><div class="card-grid">'+g.older.map(function(p){return summaryCardHTML(p);}).join("")+'</div></div>';
   }
-  if(!g.hl.length&&!g.pinned.length&&!g.current.length&&!g.older.length&&!bdays.length)cards+='<div class="empty-state"><div class="empty-state-icon">&#128591;</div>No active prayers yet.</div>';
-  div.innerHTML='<div class="slide-inner"><div class="person-header"><div><div class="person-name" style="font-size:20px">Prayer Board</div><div class="person-name-sub">Highlighted and date-specific prayers first, then newest</div></div>'+
+  if(!g.pinned.length&&!g.current.length&&!g.older.length&&!bdays.length)cards+='<div class="empty-state"><div class="empty-state-icon">&#128591;</div>No active prayers yet.</div>';
+  div.innerHTML='<div class="slide-inner"><div class="person-header"><div><div class="person-name" style="font-size:20px">Prayer Board</div><div class="person-name-sub">Date-specific prayers first, then newest &mdash; &#9733; marks a brother&rsquo;s highlighted prayers</div></div>'+
     '<div class="header-btns board-add">'+(myName?'<button class="icon-btn" onclick="openAddPrayer(\''+jsq(myName)+'\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> Add my prayer</button>':'')+
     '<button class="icon-btn evening-btn" onclick="openEvening()">&#128367; Prayer Evening</button></div></div>'+
     '<div class="search-wrap"><span class="search-icon">&#128269;</span><input class="search-input" id="board-search" type="text" aria-label="Search prayers" placeholder="Search prayers, names, categories..." oninput="filterBoard(this.value)" /><button class="search-clear" id="search-clear-btn" onclick="clearSearch()">&#x2715;</button></div><div id="board-cards">'+cards+'</div></div>';
