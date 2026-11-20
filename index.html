@@ -485,6 +485,20 @@ select.auth-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
 .comment-del{float:right;background:none;border:none;color:rgba(160,90,90,.7);font-size:13px;cursor:pointer;padding:0 2px 4px 8px}
 .board-add{margin-left:auto}
 .form-input,.form-select,.form-textarea,.comment-input,.search-input{font-size:16px}
+/* Next gathering card */
+.gather-card{margin:18px 0 6px;background:var(--navy);border-radius:16px;padding:16px 18px;border-left:4px solid var(--gold);box-shadow:0 4px 14px rgba(13,27,42,.15)}
+.gc-label{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.gc-date{font-family:"Playfair Display",serif;font-size:22px;font-weight:700;color:#FDFAF3;margin:4px 0 6px}
+.gc-meta{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:15px;color:#E9E1C8}
+.gc-info{margin-top:10px;font-size:14px;color:var(--gold-light)}
+.gc-cancel{margin-top:10px;font-size:14px;color:#F3C9B8;line-height:1.5}
+.gc-note{margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(201,168,76,.14);color:#FDF6E3;font-size:15px;line-height:1.55;white-space:pre-line}
+@media(min-width:760px){.gather-card{display:grid;grid-template-columns:auto 1fr;column-gap:24px;align-items:center}.gc-label{grid-column:1/-1}.gc-date{margin:4px 0}.gather-card>div:nth-child(n+4){grid-column:1/-1}}
+.dark-mode .gather-card{border:1px solid rgba(201,168,76,.25);border-left:4px solid var(--gold);box-shadow:none}
+.gc-tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:10px;background:rgba(201,168,76,.18);color:var(--gold-light);margin-left:4px;vertical-align:middle}
+.gc-tag.cancel{background:rgba(220,120,120,.2);color:#F3C9B8}
+.ge-cancel-row{display:flex;align-items:center;gap:10px;font-size:16px;color:#FDFAF3;padding:12px 14px;border:1px solid var(--border);border-radius:12px;cursor:pointer}
+.ge-cancel-row input{width:22px;height:22px;accent-color:#C9A84C}
 /* ========================== END v4 ========================== */
 </style>
 </head>
@@ -675,6 +689,15 @@ select.auth-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
 <div class="overlay" id="admin-overlay">
   <div class="overlay-header"><div class="overlay-title">Admin tools</div><button class="overlay-close" onclick="closeAdmin()">Close</button></div>
   <div class="overlay-body">
+    <div class="ad-sec"><h3>Next gatherings</h3>
+      <div class="form-hint">Tap <b>Change</b> to adjust or cancel one week only. Every other week stays as usual.</div>
+      <div id="ad-gather-list" style="margin-top:6px"></div>
+      <details style="margin-top:10px"><summary class="form-hint" style="cursor:pointer;color:var(--gold-light)">Usual room &amp; time</summary>
+        <label class="form-label" style="margin-top:10px">Room</label><input class="form-input" id="ad-groom" />
+        <label class="form-label" style="margin-top:10px">Start time</label><input class="form-input" id="ad-gtime" />
+        <button class="ad-btn" style="margin-top:10px" onclick="adminSaveGatherDefaults()">Save usual details</button>
+      </details>
+    </div>
     <div class="ad-sec"><h3>Group code</h3>
       <div class="form-hint">Post this in the WhatsApp chat so brothers can join. Changing it doesn&rsquo;t affect anyone who has already joined.</div>
       <div class="ad-inline"><input class="form-input" id="ad-code" autocapitalize="characters" /><button class="ad-btn" onclick="adminSaveCode()">Save</button></div>
@@ -687,6 +710,23 @@ select.auth-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
     </div>
     <div class="ad-sec"><h3>Brothers&rsquo; logins</h3><div id="ad-list"></div></div>
     <div class="overlay-status" id="ad-status"></div>
+  </div>
+</div>
+<!-- GATHERING EDIT (one week only) -->
+<div class="overlay" id="gather-edit-overlay" style="z-index:110">
+  <div class="overlay-header"><div class="overlay-title" id="ge-title">Change meeting</div><button class="overlay-close" onclick="closeGatherEdit()">Cancel</button></div>
+  <div class="overlay-body">
+    <p class="form-hint" style="color:rgba(240,214,138,.75);font-size:14px">Changes apply to this one week only.</p>
+    <label class="ge-cancel-row"><input type="checkbox" id="ge-cancel" onchange="gatherCancelToggle()" /> Meeting cancelled this week</label>
+    <div id="ge-details">
+      <label class="form-label">Date</label><input class="form-input" type="date" id="ge-date" />
+      <label class="form-label" style="margin-top:12px">Start time</label><input class="form-input" id="ge-time" />
+      <label class="form-label" style="margin-top:12px">Room</label><input class="form-input" id="ge-room" />
+    </div>
+    <div><label class="form-label" id="ge-note-label">Note for this week (optional)</label><textarea class="form-textarea" id="ge-note" rows="3" placeholder="e.g. End-of-year celebration &mdash; we&rsquo;re in the Fellowship Hall"></textarea></div>
+    <button class="overlay-save" onclick="saveGatherEdit()">Save</button>
+    <button class="auth-btn secondary" id="ge-reset" onclick="resetGatherEdit()">Back to usual details</button>
+    <div class="overlay-status" id="ge-status"></div>
   </div>
 </div>
 <!-- COMMENTS PANEL -->
@@ -1022,11 +1062,15 @@ async function init(){
       dbFetch("prayers?select=*&order=created_at.desc"),
       dbFetch("comments?select=*&order=created_at.asc"),
       dbFetch("birthday_wishes?select=*&order=created_at.asc"),
-      dbFetch("prayer_prays?select=*&order=created_at.asc")
+      dbFetch("prayer_prays?select=*&order=created_at.asc"),
+      dbFetch("gathering_settings?select=*&limit=1"),
+      dbFetch("gathering_overrides?select=*&scheduled_date=gte."+gatherWindowStart())
     ]);
+    applyGathering(results[6],results[7]);
     if(!results[0]||!results[0].length){showErr("No data found.");return;}
     applyData(results[0],results[1],results[2],results[3],results[4],results[5]);
     cacheData(results[0],results[1],results[2],results[3],results[4],results[5]);
+    try{var cc=getCachedData();if(cc){cc.gs=results[6];cc.go=results[7];localStorage.setItem('km_cache',JSON.stringify(cc));}}catch(x){}
     startUI();
   }catch(e){
     console.error("Load error:",e);
@@ -1034,6 +1078,7 @@ async function init(){
     var cached=getCachedData();
     if(cached&&cached.men&&cached.men.length&&session&&cached.user_id===session.user_id){
       applyData(cached.men,cached.weekly,cached.prayers,cached.comments,cached.birthdays,cached.prays);
+      applyGathering(cached.gs,cached.go);
       startUI();
       document.getElementById("offline-bar").classList.add("show");
     } else {
@@ -1047,8 +1092,9 @@ var visitorRows=[];
 async function initVisitor(){
   document.body.classList.add("visitor-mode");
   try{
-    var r=await Promise.all([dbFetch("weekly?select=*&limit=1"),rpc("visitor_board")]);
+    var r=await Promise.all([dbFetch("weekly?select=*&limit=1"),rpc("visitor_board"),dbFetch("gathering_settings?select=*&limit=1"),dbFetch("gathering_overrides?select=*&scheduled_date=gte."+gatherWindowStart())]);
     applyData([],r[0],[],[],[],[]);
+    applyGathering(r[2],r[3]);
     visitorRows=r[1]||[];
   }catch(e){if(e.auth){showAuth(e.message);return;}showErr(e.message);return;}
   var track=document.getElementById("slider-track");track.innerHTML="";
@@ -1118,7 +1164,7 @@ function buildCoverSlide(){
   var div=document.createElement("div");div.className="slide landing-slide";
   div.innerHTML='<div class="landing">'+
     '<div class="hero"><img src="'+LOGO_SRC+'" class="hero-bg" alt="" aria-hidden="true" /><img src="'+LOGO_SRC+'" class="hero-img" alt="Kingdom Men &mdash; Be strong. Be faithful. Be a Kingdom man." /></div>'+
-    '<div class="landing-body">'+weeklyContentHTML()+
+    '<div class="landing-body">'+gatheringCardHTML()+weeklyContentHTML()+
     '<button class="enter-btn" onclick="goTo(1)">'+(isVisitor?'See the Prayer Board':'Enter the Prayer Board')+' <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>'+
     '<div class="enter-hint">'+(isVisitor?'See how the brothers stand together in prayer':'See what your brothers are praying for this week')+'</div>'+
     (isAdmin?'<div class="wk-edit-wrap"><button class="wk-edit" onclick="openWeeklyEdit()" aria-label="Edit this week&rsquo;s content" title="Edit this week&rsquo;s content">&#9998;&nbsp;Edit</button></div>':'')+
@@ -1674,12 +1720,158 @@ async function saveProfile(){
   }
 }
 
+
+// NEXT GATHERING — every Monday at the usual time and room; Ontario holiday Mondays
+// (plus Civic Holiday) move to Tuesday. Each meeting shows until the end of its day.
+var GATHER={room:"Northwest Conference Room",start_time:"7:00 pm"},gatherOverrides={};
+function ymd(d){return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
+function parseYmd(s){var p=String(s).split("-");return new Date(+p[0],+p[1]-1,+p[2]);}
+function torontoToday(){
+  try{var parts=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Toronto",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
+    var g=function(t){return parts.find(function(x){return x.type===t;}).value;};return g("year")+"-"+g("month")+"-"+g("day");}
+  catch(e){return ymd(new Date());}
+}
+function addDays(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return x;}
+function gatherWindowStart(){return ymd(addDays(parseYmd(torontoToday()),-14));}
+function nthMonday(y,m,n){var d=new Date(y,m,1);return new Date(y,m,1+((8-d.getDay())%7)+7*(n-1));}
+function weekendToMonday(y,m,day){var d=new Date(y,m,day),w=d.getDay();return w===1?d:w===6?new Date(y,m,day+2):w===0?new Date(y,m,day+1):null;}
+var _holidays={};
+function mondayHolidays(y){
+  if(_holidays[y])return _holidays[y];
+  var h={};function add(d,name){if(d&&d.getDay()===1)h[ymd(d)]=name;}
+  add(weekendToMonday(y,0,1),"New Year’s Day");
+  add(nthMonday(y,1,3),"Family Day");
+  var v=new Date(y,4,24);while(v.getDay()!==1)v.setDate(v.getDate()-1);add(v,"Victoria Day");
+  add(weekendToMonday(y,6,1),"Canada Day");
+  add(nthMonday(y,7,1),"Civic Holiday");
+  add(nthMonday(y,8,1),"Labour Day");
+  add(nthMonday(y,9,2),"Thanksgiving");
+  var xd=new Date(y,11,25).getDay(); // Christmas / Boxing Day and their weekend substitutes
+  if(xd===1)add(new Date(y,11,25),"Christmas Day");
+  else if(xd===0)add(new Date(y,11,26),"Boxing Day");
+  else if(xd===6)add(new Date(y,11,27),"Christmas Day");
+  else if(xd===5)add(new Date(y,11,28),"Boxing Day");
+  return(_holidays[y]=h);
+}
+function regularMeeting(monday){
+  var h=mondayHolidays(monday.getFullYear())[ymd(monday)]||null;
+  return{date:h?addDays(monday,1):monday,holiday:h};
+}
+function upcomingMeetings(count){
+  var today=torontoToday(),list=[];
+  var t=parseYmd(today),mon=addDays(t,-((t.getDay()+6)%7));
+  for(var i=0;i<80&&list.length<count;i++){
+    var reg=regularMeeting(mon),key=ymd(reg.date),o=gatherOverrides[key]||{};
+    var actual=o.new_date||key;
+    if(actual>=today)list.push({key:key,date:actual,holiday:o.new_date?null:reg.holiday,cancelled:!!o.cancelled,note:o.note||"",
+      room:o.room||GATHER.room,time:o.start_time||GATHER.start_time,moved:!!o.new_date,changed:!!gatherOverrides[key]});
+    mon=addDays(mon,7);
+  }
+  return list.sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0;});
+}
+function applyGathering(settings,overrides){
+  var st=settings&&settings[0];
+  if(st){GATHER.room=st.room||GATHER.room;GATHER.start_time=st.start_time||GATHER.start_time;}
+  gatherOverrides={};(overrides||[]).forEach(function(o){gatherOverrides[o.scheduled_date]=o;});
+}
+function longDate(s){return parseYmd(s).toLocaleDateString("en-CA",{weekday:"long",month:"long",day:"numeric"});}
+function gatheringCardHTML(){
+  var list=upcomingMeetings(10),skipped=[],next=null;
+  for(var i=0;i<list.length;i++){if(list[i].cancelled)skipped.push(list[i]);else{next=list[i];break;}}
+  if(!next)return"";
+  var today=torontoToday();
+  var h='<section class="gather-card" aria-label="Next gathering"><div class="gc-label">&#128197; Next Gathering</div>'+
+    '<div class="gc-date">'+(next.date===today?'Tonight':esc(longDate(next.date)))+'</div>'+
+    '<div class="gc-meta"><span>&#128339; '+esc(next.time)+'</span><span>&#128205; '+esc(next.room)+'</span></div>';
+  if(next.holiday)h+='<div class="gc-info">Moved to Tuesday this week for '+esc(next.holiday)+'.</div>';
+  skipped.forEach(function(c){h+='<div class="gc-cancel"><b>No meeting '+esc(longDate(c.date))+'</b>'+(c.note?' &mdash; '+esc(c.note):'')+'</div>';});
+  if(next.note)h+='<div class="gc-note">'+esc(next.note)+'</div>';
+  return h+'</section>';
+}
+// Roll the card over at midnight if the page is left open
+var _gatherDay=torontoToday();
+setInterval(function(){var d=torontoToday();if(d!==_gatherDay&&totalSlides){_gatherDay=d;refreshWeeklySlide();}},5*60*1000);
+
+// ADMIN: gatherings
+async function adminLoadGatherings(){
+  try{
+    var r=await Promise.all([dbFetch("gathering_settings?select=*&limit=1"),dbFetch("gathering_overrides?select=*&scheduled_date=gte."+gatherWindowStart())]);
+    applyGathering(r[0],r[1]);
+  }catch(e){}
+  document.getElementById("ad-groom").value=GATHER.room;
+  document.getElementById("ad-gtime").value=GATHER.start_time;
+  var h="";
+  upcomingMeetings(8).forEach(function(m){
+    var status=m.cancelled?'<span class="gc-tag cancel">Cancelled</span>':m.changed?'<span class="gc-tag">Changed</span>':m.holiday?'<span class="gc-tag">Tue &middot; '+esc(m.holiday)+'</span>':'';
+    h+='<div class="ad-row"><div class="ad-name">'+esc(longDate(m.date))+' '+status+'<small>'+esc(m.time)+' &middot; '+esc(m.room)+(m.note?' &middot; &ldquo;'+esc(m.note)+'&rdquo;':'')+'</small></div>'+
+      '<button class="ad-btn" onclick="openGatherEdit(\''+m.key+'\')">Change</button></div>';
+  });
+  document.getElementById("ad-gather-list").innerHTML=h;
+}
+async function adminSaveGatherDefaults(){
+  var room=document.getElementById("ad-groom").value.trim(),time=document.getElementById("ad-gtime").value.trim();
+  if(!room||!time){alert("Room and time can’t be blank.");return;}
+  try{await dbFetch("gathering_settings?id=eq.1",{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({room:room,start_time:time})});
+    GATHER.room=room;GATHER.start_time=time;refreshWeeklySlide();adminLoadGatherings();showSave("&#10003; Usual details saved");}
+  catch(e){alert("Error: "+e.message);}
+}
+var gatherEditing=null;
+function openGatherEdit(key){
+  gatherEditing=key;
+  var o=gatherOverrides[key]||{},reg=key;
+  document.getElementById("ge-title").textContent="Meeting of "+longDate(reg);
+  document.getElementById("ge-date").value=o.new_date||reg;
+  document.getElementById("ge-time").value=o.start_time||GATHER.start_time;
+  document.getElementById("ge-room").value=o.room||GATHER.room;
+  document.getElementById("ge-note").value=o.note||"";
+  document.getElementById("ge-cancel").checked=!!o.cancelled;
+  document.getElementById("ge-reset").style.display=gatherOverrides[key]?"block":"none";
+  gatherCancelToggle();
+  document.getElementById("ge-status").textContent="";
+  document.getElementById("gather-edit-overlay").classList.add("open");
+}
+function closeGatherEdit(){document.getElementById("gather-edit-overlay").classList.remove("open");gatherEditing=null;}
+function gatherCancelToggle(){
+  var c=document.getElementById("ge-cancel").checked;
+  document.getElementById("ge-details").style.display=c?"none":"block";
+  document.getElementById("ge-note-label").textContent=c?"Reason (shown on the card)":"Note for this week (optional)";
+}
+async function saveGatherEdit(){
+  if(!gatherEditing)return;
+  var key=gatherEditing,st=document.getElementById("ge-status");
+  var cancelled=document.getElementById("ge-cancel").checked;
+  var nd=document.getElementById("ge-date").value||key;
+  var time=document.getElementById("ge-time").value.trim(),room=document.getElementById("ge-room").value.trim();
+  var row={scheduled_date:key,cancelled:cancelled,note:document.getElementById("ge-note").value.trim()||null,
+    new_date:(!cancelled&&nd!==key)?nd:null,
+    start_time:(!cancelled&&time&&time!==GATHER.start_time)?time:null,
+    room:(!cancelled&&room&&room!==GATHER.room)?room:null,updated_at:new Date().toISOString()};
+  if(row.new_date&&row.new_date<torontoToday()){st.textContent="That date has already passed.";return;}
+  st.textContent="Saving…";
+  try{
+    if(!row.cancelled&&!row.note&&!row.new_date&&!row.start_time&&!row.room){
+      await dbFetch("gathering_overrides?scheduled_date=eq."+key,{method:"DELETE",prefer:"return=minimal"});delete gatherOverrides[key];
+    }else{
+      await dbFetch("gathering_overrides?on_conflict=scheduled_date",{method:"POST",prefer:"resolution=merge-duplicates,return=minimal",body:JSON.stringify(row)});
+      gatherOverrides[key]=row;
+    }
+    closeGatherEdit();refreshWeeklySlide();adminLoadGatherings();showSave(cancelled?"&#10003; Meeting marked cancelled":"&#10003; Meeting updated");
+  }catch(e){st.textContent="Error: "+e.message;}
+}
+async function resetGatherEdit(){
+  if(!gatherEditing)return;var key=gatherEditing;
+  try{await dbFetch("gathering_overrides?scheduled_date=eq."+key,{method:"DELETE",prefer:"return=minimal"});delete gatherOverrides[key];
+    closeGatherEdit();refreshWeeklySlide();adminLoadGatherings();showSave("&#10003; Back to the usual details");}
+  catch(e){document.getElementById("ge-status").textContent="Error: "+e.message;}
+}
+
 // ADMIN TOOLS (Jeffery only — the server double-checks)
 var adminData=null;
 async function openAdmin(){
   if(!isAdmin)return;
   document.getElementById("admin-overlay").classList.add("open");
   var st=document.getElementById("ad-status");st.textContent="Loading…";
+  adminLoadGatherings();
   try{adminData=await kmAuth("admin_overview");renderAdmin();st.textContent="";}
   catch(e){st.textContent="Error: "+e.message;}
 }
