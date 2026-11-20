@@ -1747,23 +1747,22 @@ function mondayHolidays(y){
   add(nthMonday(y,8,1),"Labour Day");
   add(nthMonday(y,9,2),"Thanksgiving");
   var xd=new Date(y,11,25).getDay(); // Christmas / Boxing Day and their weekend substitutes
-  if(xd===1)add(new Date(y,11,25),"Christmas Day");
-  else if(xd===0)add(new Date(y,11,26),"Boxing Day");
-  else if(xd===6)add(new Date(y,11,27),"Christmas Day");
+  if(xd===1||xd===0||xd===6){var cm=xd===1?25:xd===0?26:27;add(new Date(y,11,cm),"Christmas & Boxing Day");_skipWeeks[ymd(new Date(y,11,cm))]=true;} // Monday AND Tuesday off
   else if(xd===5)add(new Date(y,11,28),"Boxing Day");
   return(_holidays[y]=h);
 }
+var _skipWeeks={}; // weeks where Monday and Tuesday are both holidays: no meeting that week
 function regularMeeting(monday){
-  var h=mondayHolidays(monday.getFullYear())[ymd(monday)]||null;
-  return{date:h?addDays(monday,1):monday,holiday:h};
+  var key=ymd(monday),h=mondayHolidays(monday.getFullYear())[key]||null;
+  return{date:h?addDays(monday,1):monday,holiday:h,skip:!!_skipWeeks[key]};
 }
 function upcomingMeetings(count){
   var today=torontoToday(),list=[];
   var t=parseYmd(today),mon=addDays(t,-((t.getDay()+6)%7));
   for(var i=0;i<80&&list.length<count;i++){
-    var reg=regularMeeting(mon),key=ymd(reg.date),o=gatherOverrides[key]||{};
-    var actual=o.new_date||key;
-    if(actual>=today)list.push({key:key,date:actual,holiday:o.new_date?null:reg.holiday,cancelled:!!o.cancelled,note:o.note||"",
+    var reg=regularMeeting(mon),key=ymd(reg.date),has=!!gatherOverrides[key],o=gatherOverrides[key]||{};
+    var actual=o.new_date||key,autoSkip=reg.skip&&!has;
+    if(actual>=today)list.push({key:key,date:actual,holiday:o.new_date?null:reg.holiday,cancelled:autoSkip||!!o.cancelled,note:o.note||(autoSkip?reg.holiday:""),autoSkip:autoSkip,
       room:o.room||GATHER.room,time:o.start_time||GATHER.start_time,moved:!!o.new_date,changed:!!gatherOverrides[key]});
     mon=addDays(mon,7);
   }
@@ -1783,8 +1782,8 @@ function gatheringCardHTML(){
   var h='<section class="gather-card" aria-label="Next gathering"><div class="gc-label">&#128197; Next Gathering</div>'+
     '<div class="gc-date">'+(next.date===today?'Tonight':esc(longDate(next.date)))+'</div>'+
     '<div class="gc-meta"><span>&#128339; '+esc(next.time)+'</span><span>&#128205; '+esc(next.room)+'</span></div>';
+  skipped.forEach(function(c){h+='<div class="gc-cancel"><b>No meeting '+(c.autoSkip?'the week of '+esc(longDate(ymd(addDays(parseYmd(c.date),-1)))):esc(longDate(c.date)))+'</b>'+(c.note?' &mdash; '+esc(c.note):'')+'</div>';});
   if(next.holiday)h+='<div class="gc-info">Moved to Tuesday this week for '+esc(next.holiday)+'.</div>';
-  skipped.forEach(function(c){h+='<div class="gc-cancel"><b>No meeting '+esc(longDate(c.date))+'</b>'+(c.note?' &mdash; '+esc(c.note):'')+'</div>';});
   if(next.note)h+='<div class="gc-note">'+esc(next.note)+'</div>';
   return h+'</section>';
 }
@@ -1802,7 +1801,7 @@ async function adminLoadGatherings(){
   document.getElementById("ad-gtime").value=GATHER.start_time;
   var h="";
   upcomingMeetings(8).forEach(function(m){
-    var status=m.cancelled?'<span class="gc-tag cancel">Cancelled</span>':m.changed?'<span class="gc-tag">Changed</span>':m.holiday?'<span class="gc-tag">Tue &middot; '+esc(m.holiday)+'</span>':'';
+    var status=m.autoSkip?'<span class="gc-tag cancel">No meeting &middot; holidays</span>':m.cancelled?'<span class="gc-tag cancel">Cancelled</span>':m.changed?'<span class="gc-tag">Changed</span>':m.holiday?'<span class="gc-tag">Tue &middot; '+esc(m.holiday)+'</span>':'';
     h+='<div class="ad-row"><div class="ad-name">'+esc(longDate(m.date))+' '+status+'<small>'+esc(m.time)+' &middot; '+esc(m.room)+(m.note?' &middot; &ldquo;'+esc(m.note)+'&rdquo;':'')+'</small></div>'+
       '<button class="ad-btn" onclick="openGatherEdit(\''+m.key+'\')">Change</button></div>';
   });
@@ -1824,7 +1823,9 @@ function openGatherEdit(key){
   document.getElementById("ge-time").value=o.start_time||GATHER.start_time;
   document.getElementById("ge-room").value=o.room||GATHER.room;
   document.getElementById("ge-note").value=o.note||"";
-  document.getElementById("ge-cancel").checked=!!o.cancelled;
+  var wk=upcomingMeetings(12).find(function(m){return m.key===key;});
+  document.getElementById("ge-cancel").checked=gatherOverrides[key]?!!o.cancelled:!!(wk&&wk.autoSkip);
+  if(!gatherOverrides[key]&&wk&&wk.autoSkip)document.getElementById("ge-note").value=wk.note;
   document.getElementById("ge-reset").style.display=gatherOverrides[key]?"block":"none";
   gatherCancelToggle();
   document.getElementById("ge-status").textContent="";
@@ -1849,7 +1850,8 @@ async function saveGatherEdit(){
   if(row.new_date&&row.new_date<torontoToday()){st.textContent="That date has already passed.";return;}
   st.textContent="Saving…";
   try{
-    if(!row.cancelled&&!row.note&&!row.new_date&&!row.start_time&&!row.room){
+    var wk2=upcomingMeetings(12).find(function(m){return m.key===key;});
+    if(!row.cancelled&&!row.note&&!row.new_date&&!row.start_time&&!row.room&&!(wk2&&wk2.autoSkip)){
       await dbFetch("gathering_overrides?scheduled_date=eq."+key,{method:"DELETE",prefer:"return=minimal"});delete gatherOverrides[key];
     }else{
       await dbFetch("gathering_overrides?on_conflict=scheduled_date",{method:"POST",prefer:"resolution=merge-duplicates,return=minimal",body:JSON.stringify(row)});
