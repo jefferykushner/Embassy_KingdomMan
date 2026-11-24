@@ -102,6 +102,26 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (action === "admin_register") {
+      // Jeffery sets up a login for a brother (no group code needed)
+      const { data: man } = await db.from("men").select("id,name,user_id").eq("id", b.man_id).maybeSingle();
+      if (!man) return fail("Couldn't find that brother.");
+      if (man.user_id) return fail(`${man.name} has already joined.`, 409);
+      if (!okPassword(b.password)) return fail("Password needs at least 6 characters.");
+      const username = await freeUsername(slug(man.name));
+      const { data: created, error } = await db.auth.admin.createUser({
+        email: emailFor(username), password: b.password, email_confirm: true, user_metadata: { username, name: man.name, set_up_by_admin: true },
+      });
+      if (error || !created?.user) return fail("Couldn't create the account: " + (error?.message || "unknown"), 500);
+      const { data: linked, error: lerr } = await db.from("men").update({ user_id: created.user.id, username })
+        .eq("id", man.id).is("user_id", null).select("id");
+      if (lerr || !linked?.length) {
+        await db.auth.admin.deleteUser(created.user.id);
+        return fail(`${man.name} has already joined.`, 409);
+      }
+      return json({ ok: true, username });
+    }
+
     if (action === "admin_reset") {
       if (!okPassword(b.password)) return fail("Password needs at least 6 characters.");
       const { data: man } = await db.from("men").select("user_id,name").eq("id", b.man_id).maybeSingle();

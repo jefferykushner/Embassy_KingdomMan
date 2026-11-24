@@ -633,6 +633,7 @@ html{-webkit-text-size-adjust:100%}
 .ins-table th{text-align:right;font-weight:500;color:rgba(240,214,138,.85);padding:6px 4px;border-bottom:1px solid var(--border);font-size:12px}
 .ins-table td{text-align:right;padding:7px 4px;border-bottom:1px solid rgba(201,168,76,.1)}
 .ins-table th:first-child,.ins-table td:first-child{text-align:left}
+.ad-btn.primary{background:var(--gold);color:#0E0C05;border-color:var(--gold);font-weight:600}
 /* ========================== END v4 ========================== */
 </style>
 </head>
@@ -934,6 +935,26 @@ html{-webkit-text-size-adjust:100%}
     <button id="ev-prev" onclick="eveningPrev()">&larr; Previous</button>
     <span class="ev-hint">Arrow keys or a presentation clicker also work</span>
     <button id="ev-next" class="primary" onclick="eveningNext()">Next brother &rarr;</button>
+  </div>
+</div>
+<!-- ADMIN: SET UP A BROTHER'S LOGIN -->
+<div class="overlay" id="setup-overlay" style="z-index:120;background:#0D1B2A">
+  <div class="overlay-header"><div class="overlay-title" id="su-title">Set up login</div><button class="overlay-close" onclick="closeSetupLogin()">Close</button></div>
+  <div class="overlay-body">
+    <div id="su-form">
+      <p class="form-hint">Set up his account for him &mdash; no group code needed. Choose a password together, or use the suggested one.</p>
+      <div class="username-note" style="margin-top:12px">His username will be <b id="su-user"></b></div>
+      <label class="form-label" style="margin-top:12px">Password</label>
+      <div class="ad-inline"><input class="form-input" id="su-pass" type="text" autocapitalize="none" autocorrect="off" spellcheck="false" /><button class="ad-btn" onclick="suggestPassword()">Suggest</button></div>
+      <div class="form-hint">At least 6 characters. He can change it later on his profile.</div>
+      <button class="overlay-save" id="su-btn" style="margin-top:16px" onclick="saveSetupLogin()">Create his login</button>
+      <div class="overlay-status" id="su-status"></div>
+    </div>
+    <div id="su-done" style="display:none">
+      <div class="username-note" style="font-size:16px">&#10003; <b id="su-done-name"></b> is all set.<br><br>Username: <b id="su-done-user"></b><br>Password: <b id="su-done-pass"></b><br><br><span style="font-size:14px">Give him these (or sign him in on his phone now). He can change his password on his profile.</span></div>
+      <button class="overlay-save" style="margin-top:14px" onclick="setupOpenProfile()">Fill in his profile (email, phone, birthday)</button>
+      <button class="auth-btn secondary" onclick="closeSetupLogin()">Done</button>
+    </div>
   </div>
 </div>
 <!-- ANSWERED -->
@@ -2398,7 +2419,7 @@ function renderAdmin(){
       (m.joined?'<span class="ad-badge ok">Joined</span>':'<span class="ad-badge no">Not joined</span>')+
       '<small>'+(m.joined?'Username: <b>'+esc(m.username)+'</b>'+(m.last_sign_in?' &middot; last signed in '+esc(shortDate(m.last_sign_in)):' &middot; hasn’t signed in yet'):'Can join with the group code')+'</small></div>'+
       '<div class="ad-btns">'+(idx>=0?'<button class="ad-btn" onclick="openProfile(\''+jsq(m.name)+'\','+idx+')">Profile</button>':'')+
-      (m.joined?'<button class="ad-btn" onclick="adminReset('+m.id+')">Reset password</button>'+(m.is_admin?'':'<button class="ad-btn danger" onclick="adminUnlink('+m.id+')">Remove login</button>'):'')+'</div></div>';
+      (m.joined?'<button class="ad-btn" onclick="adminReset('+m.id+')">Reset password</button>'+(m.is_admin?'':'<button class="ad-btn danger" onclick="adminUnlink('+m.id+')">Remove login</button>'):(m.is_admin?'':'<button class="ad-btn primary" onclick="openSetupLogin('+m.id+')">Set up login</button>'))+'</div></div>';
   });
   document.getElementById("ad-list").innerHTML=h;
 }
@@ -2465,6 +2486,48 @@ function adminLoadInsights(){
   document.getElementById("ad-insights").innerHTML=h;
 }
 function adminRefreshActivity(){if(adminOpen&&adminCurrentTab==="activity")adminLoadActivity();}
+// Set up a brother's login for him (no group code needed)
+var setupFor=null;
+function slugName(n){return String(n||"").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]/g,"")||"brother";}
+function suggestPassword(){
+  var w=["Faith","Grace","Hope","Light","Rock","Shield","Crown","Mercy","Psalm","Cedar","Anchor","Harvest"];
+  var a=new Uint32Array(2);try{crypto.getRandomValues(a);}catch(e){a=[Math.random()*1e9,Math.random()*1e9];}
+  document.getElementById("su-pass").value=w[a[0]%w.length]+(100+(a[1]%900));
+}
+function openSetupLogin(id){
+  var m=adminMan(id);if(!m)return;setupFor=m;
+  document.getElementById("su-title").textContent="Set up login for "+m.name;
+  document.getElementById("su-user").textContent=slugName(m.name);
+  document.getElementById("su-pass").value="";
+  document.getElementById("su-form").style.display="block";
+  document.getElementById("su-done").style.display="none";
+  document.getElementById("su-status").textContent="";
+  document.getElementById("su-btn").disabled=false;
+  document.getElementById("setup-overlay").classList.add("open");
+  suggestPassword();
+}
+function closeSetupLogin(){document.getElementById("setup-overlay").classList.remove("open");setupFor=null;}
+async function saveSetupLogin(){
+  if(!setupFor)return;
+  var pw=document.getElementById("su-pass").value.trim(),st=document.getElementById("su-status"),btn=document.getElementById("su-btn");
+  if(pw.length<6){st.textContent="Password needs at least 6 characters.";return;}
+  btn.disabled=true;st.textContent="Setting up his login\u2026";
+  try{
+    var r=await kmAuth("admin_register",{man_id:setupFor.id,password:pw});
+    var local=men.find(function(x){return x.id===setupFor.id;});if(local){local.username=r.username;local.user_id=local.user_id||"linked";}
+    document.getElementById("su-done-user").textContent=r.username;
+    document.getElementById("su-done-pass").textContent=pw;
+    document.getElementById("su-done-name").textContent=setupFor.name;
+    document.getElementById("su-form").style.display="none";
+    document.getElementById("su-done").style.display="block";
+    st.textContent="";
+    adminLoadOverview();
+  }catch(e){btn.disabled=false;st.textContent=e.message;}
+}
+function setupOpenProfile(){
+  var name=setupFor&&setupFor.name;closeSetupLogin();
+  var idx=men.findIndex(function(x){return x.name===name;});if(idx>=0)openProfile(name,idx);
+}
 function adminMan(id){return adminData.men.find(function(m){return m.id===id;});}
 async function adminReset(id){
   var m=adminMan(id);
